@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 
-const STORAGE_KEY = "cocodona-crew-console-final-v3";
+const STORAGE_KEY = "cocodona-crew-console-final-v4";
 const RACE_START_ISO = "2026-05-04T05:00:00-07:00";
 
 const styles = {
@@ -69,6 +69,7 @@ const styles = {
     color: "#A7345D",
     maxWidth: "100%",
     boxSizing: "border-box",
+    whiteSpace: "nowrap",
   },
   bigButton: {
     height: "88px",
@@ -109,6 +110,8 @@ const styles = {
     minWidth: 0,
     background: "#FFFDF9",
     color: "#3B2432",
+    display: "block",
+    margin: "6px auto 0 auto",
   },
   textarea: {
     width: "100%",
@@ -153,6 +156,17 @@ const styles = {
     height: "100%",
     background: "linear-gradient(90deg, #F4DC00 0%, #F46A3A 50%, #EB4C78 100%)",
   }),
+  noteBox: {
+    marginTop: "10px",
+    background: "#FFFDF9",
+    border: "1px solid #E8D7C2",
+    borderRadius: "14px",
+    padding: "10px",
+    color: "#3B2432",
+    fontSize: "13px",
+    lineHeight: 1.45,
+    whiteSpace: "pre-wrap",
+  },
 };
 
 const stations = [
@@ -460,8 +474,7 @@ function formatDateTime(value) {
 
 function formatTimeOnly(value) {
   if (!value) return "—";
-  const d = new Date(value);
-  return d.toLocaleTimeString([], {
+  return new Date(value).toLocaleTimeString([], {
     hour: "numeric",
     minute: "2-digit",
   });
@@ -563,6 +576,7 @@ export default function App() {
   const [importText, setImportText] = useState("");
   const [savedAt, setSavedAt] = useState("");
   const [crewForecastOpen, setCrewForecastOpen] = useState(false);
+  const [openStationNotes, setOpenStationNotes] = useState({});
 
   useEffect(() => {
     try {
@@ -599,14 +613,12 @@ export default function App() {
     return stations.map((station, idx) => {
       const plannedIn = planMode === "A" ? station.planAIn : station.planBIn;
       const plannedOut = planMode === "A" ? station.planAOut : station.planBOut;
-
       const prevPlannedOut =
         idx > 0
           ? planMode === "A"
             ? stations[idx - 1].planAOut
             : stations[idx - 1].planBOut
           : plannedOut;
-
       const prevActualOut =
         idx > 0 ? records[idx - 1].actualOut : records[0].actualOut || records[0].actualIn;
 
@@ -666,8 +678,6 @@ export default function App() {
           name: station.name,
           mile: station.mile,
           timestamp,
-          plannedIn: station.plannedIn,
-          plannedOut: station.plannedOut,
         };
       }
     });
@@ -701,14 +711,11 @@ export default function App() {
       raceStart.getTime() + predictedFinishHours * 3600000
     ).toISOString();
 
-    const trendVsPlanA = new Date(predictedFinishIso) - planAFinish;
-    const trendVsPlanB = new Date(predictedFinishIso) - planBFinish;
-
     return {
       predictedFinishIso,
       predictedFinishHours,
-      trendVsPlanA,
-      trendVsPlanB,
+      trendVsPlanA: new Date(predictedFinishIso) - planAFinish,
+      trendVsPlanB: new Date(predictedFinishIso) - planBFinish,
       basedOnStation: lastActualPoint.name,
       basedOnElapsedMs: elapsedMs,
     };
@@ -805,6 +812,10 @@ export default function App() {
 
   function hardReloadApp() {
     window.location.reload();
+  }
+
+  function toggleStationNote(idx) {
+    setOpenStationNotes((prev) => ({ ...prev, [idx]: !prev[idx] }));
   }
 
   const status = current ? statusFromDelta(current.deltaMs) : statusFromDelta(null);
@@ -983,7 +994,7 @@ export default function App() {
                 <div style={styles.muted}>Actual in</div>
                 <input
                   type="datetime-local"
-                  style={{ ...styles.input, marginTop: "6px" }}
+                  style={styles.input}
                   value={toDateTimeLocalValue(current.actualIn)}
                   onChange={(e) =>
                     setField(currentIndex, "actualIn", fromDateTimeLocalValue(e.target.value))
@@ -994,7 +1005,7 @@ export default function App() {
                 <div style={styles.muted}>Actual out</div>
                 <input
                   type="datetime-local"
-                  style={{ ...styles.input, marginTop: "6px" }}
+                  style={styles.input}
                   value={toDateTimeLocalValue(current.actualOut)}
                   onChange={(e) =>
                     setField(currentIndex, "actualOut", fromDateTimeLocalValue(e.target.value))
@@ -1056,6 +1067,9 @@ export default function App() {
             <div style={{ display: "grid", gap: "10px", marginTop: "12px" }}>
               {data.map((station, idx) => {
                 const s = statusFromDelta(station.deltaMs);
+                const hasNote = !!station.note?.trim();
+                const noteOpen = !!openStationNotes[idx];
+
                 return (
                   <div
                     key={station.name}
@@ -1102,6 +1116,18 @@ export default function App() {
                         Stop time: <strong>{formatDuration(station.stopMs)}</strong>
                       </div>
                     </div>
+
+                    {hasNote && (
+                      <div style={{ marginTop: "10px" }}>
+                        <button
+                          style={styles.smallButton("secondary")}
+                          onClick={() => toggleStationNote(idx)}
+                        >
+                          {noteOpen ? "Hide note" : "Show note"}
+                        </button>
+                        {noteOpen && <div style={styles.noteBox}>{station.note}</div>}
+                      </div>
+                    )}
 
                     <div style={{ ...styles.grid2, marginTop: "10px" }}>
                       <button
