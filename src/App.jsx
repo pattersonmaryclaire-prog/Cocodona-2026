@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 
-const STORAGE_KEY = "cocodona-crew-console-final-v4";
+const STORAGE_KEY = "cocodona-crew-console-final-v5";
 const RACE_START_ISO = "2026-05-04T05:00:00-07:00";
 
 const styles = {
@@ -47,6 +47,7 @@ const styles = {
     gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
     gap: "10px",
     width: "100%",
+    alignItems: "start",
   },
   statBox: {
     background: "#FFF8EF",
@@ -55,6 +56,7 @@ const styles = {
     border: "1px solid #E8D7C2",
     minWidth: 0,
     boxSizing: "border-box",
+    overflow: "hidden",
   },
   badge: {
     display: "inline-flex",
@@ -101,17 +103,20 @@ const styles = {
   }),
   input: {
     width: "100%",
+    maxWidth: "100%",
+    minWidth: 0,
     height: "44px",
     borderRadius: "16px",
     border: "1px solid #D8C4AA",
     padding: "0 12px",
     fontSize: "14px",
     boxSizing: "border-box",
-    minWidth: 0,
     background: "#FFFDF9",
     color: "#3B2432",
     display: "block",
-    margin: "6px auto 0 auto",
+    marginTop: "6px",
+    appearance: "none",
+    WebkitAppearance: "none",
   },
   textarea: {
     width: "100%",
@@ -474,7 +479,8 @@ function formatDateTime(value) {
 
 function formatTimeOnly(value) {
   if (!value) return "—";
-  return new Date(value).toLocaleTimeString([], {
+  const d = new Date(value);
+  return d.toLocaleTimeString([], {
     hour: "numeric",
     minute: "2-digit",
   });
@@ -687,7 +693,6 @@ export default function App() {
   const forecast = useMemo(() => {
     const finishMile = stations[stations.length - 1].mile;
     const raceStart = new Date(RACE_START_ISO);
-
     const planAFinish = new Date(stations[stations.length - 1].planAIn);
     const planBFinish = new Date(stations[stations.length - 1].planBIn);
 
@@ -992,30 +997,37 @@ export default function App() {
             <div style={{ ...styles.grid2, marginTop: "12px" }}>
               <div style={styles.statBox}>
                 <div style={styles.muted}>Actual in</div>
-                <input
-                  type="datetime-local"
-                  style={styles.input}
-                  value={toDateTimeLocalValue(current.actualIn)}
-                  onChange={(e) =>
-                    setField(currentIndex, "actualIn", fromDateTimeLocalValue(e.target.value))
-                  }
-                />
+                <div style={{ width: "100%", minWidth: 0, overflow: "hidden" }}>
+                  <input
+                    type="datetime-local"
+                    style={styles.input}
+                    value={toDateTimeLocalValue(current.actualIn)}
+                    onChange={(e) =>
+                      setField(currentIndex, "actualIn", fromDateTimeLocalValue(e.target.value))
+                    }
+                  />
+                </div>
               </div>
+
               <div style={styles.statBox}>
                 <div style={styles.muted}>Actual out</div>
-                <input
-                  type="datetime-local"
-                  style={styles.input}
-                  value={toDateTimeLocalValue(current.actualOut)}
-                  onChange={(e) =>
-                    setField(currentIndex, "actualOut", fromDateTimeLocalValue(e.target.value))
-                  }
-                />
+                <div style={{ width: "100%", minWidth: 0, overflow: "hidden" }}>
+                  <input
+                    type="datetime-local"
+                    style={styles.input}
+                    value={toDateTimeLocalValue(current.actualOut)}
+                    onChange={(e) =>
+                      setField(currentIndex, "actualOut", fromDateTimeLocalValue(e.target.value))
+                    }
+                  />
+                </div>
               </div>
+
               <div style={styles.statBox}>
                 <div style={styles.muted}>Segment delta</div>
                 <div style={{ fontWeight: 800 }}>{formatDuration(current.deltaMs)}</div>
               </div>
+
               <div style={styles.statBox}>
                 <div style={styles.muted}>Stop time</div>
                 <div style={{ fontWeight: 800 }}>{formatDuration(current.stopMs)}</div>
