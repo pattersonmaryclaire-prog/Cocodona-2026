@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 
-const STORAGE_KEY = "cocodona-crew-console-final-v1";
+const STORAGE_KEY = "cocodona-crew-console-final-v3";
+const RACE_START_ISO = "2026-05-04T05:00:00-07:00";
 
 const styles = {
   page: {
@@ -158,10 +159,10 @@ const stations = [
   {
     name: "Start Line - Deep Canyon Ranch",
     mile: 0.0,
-    planAIn: "2026-05-04T05:00:00",
-    planAOut: "2026-05-04T05:00:00",
-    planBIn: "2026-05-04T05:00:00",
-    planBOut: "2026-05-04T05:00:00",
+    planAIn: "2026-05-04T05:00:00-07:00",
+    planAOut: "2026-05-04T05:00:00-07:00",
+    planBIn: "2026-05-04T05:00:00-07:00",
+    planBOut: "2026-05-04T05:00:00-07:00",
     pacer: "—",
     shoes: "",
     actions: "Controlled start",
@@ -170,10 +171,10 @@ const stations = [
   {
     name: "Cottonwood Creek",
     mile: 7.4,
-    planAIn: "2026-05-04T07:30:00",
-    planAOut: "2026-05-04T07:35:00",
-    planBIn: "2026-05-04T07:50:00",
-    planBOut: "2026-05-04T07:55:00",
+    planAIn: "2026-05-04T07:30:00-07:00",
+    planAOut: "2026-05-04T07:35:00-07:00",
+    planBIn: "2026-05-04T07:50:00-07:00",
+    planBOut: "2026-05-04T07:55:00-07:00",
     pacer: "—",
     shoes: "",
     actions: "Quick fluids and go",
@@ -182,10 +183,10 @@ const stations = [
   {
     name: "Lane Mtn by UltrAspire",
     mile: 32.5,
-    planAIn: "2026-05-04T14:00:00",
-    planAOut: "2026-05-04T14:30:00",
-    planBIn: "2026-05-04T15:00:00",
-    planBOut: "2026-05-04T15:30:00",
+    planAIn: "2026-05-04T14:00:00-07:00",
+    planAOut: "2026-05-04T14:30:00-07:00",
+    planBIn: "2026-05-04T15:00:00-07:00",
+    planBOut: "2026-05-04T15:30:00-07:00",
     pacer: "—",
     shoes: "",
     actions: "30 min cap",
@@ -194,10 +195,10 @@ const stations = [
   {
     name: "Crown King by Tailwind",
     mile: 36.6,
-    planAIn: "2026-05-04T18:00:00",
-    planAOut: "2026-05-04T19:00:00",
-    planBIn: "2026-05-04T19:15:00",
-    planBOut: "2026-05-04T20:30:00",
+    planAIn: "2026-05-04T18:00:00-07:00",
+    planAOut: "2026-05-04T19:00:00-07:00",
+    planBIn: "2026-05-04T19:15:00-07:00",
+    planBOut: "2026-05-04T20:30:00-07:00",
     pacer: "—",
     shoes: "",
     actions: "Food + feet + lights",
@@ -206,10 +207,10 @@ const stations = [
   {
     name: "Arrastra Creek",
     mile: 51.0,
-    planAIn: "2026-05-04T23:00:00",
-    planAOut: "2026-05-05T00:00:00",
-    planBIn: "2026-05-05T00:30:00",
-    planBOut: "2026-05-05T01:30:00",
+    planAIn: "2026-05-04T23:00:00-07:00",
+    planAOut: "2026-05-05T00:00:00-07:00",
+    planBIn: "2026-05-05T00:30:00-07:00",
+    planBOut: "2026-05-05T01:30:00-07:00",
     pacer: "—",
     shoes: "",
     actions: "1 hr max",
@@ -218,10 +219,10 @@ const stations = [
   {
     name: "Kamp Kipa",
     mile: 60.8,
-    planAIn: "2026-05-05T04:00:00",
-    planAOut: "2026-05-05T05:00:00",
-    planBIn: "2026-05-05T05:00:00",
-    planBOut: "2026-05-05T06:00:00",
+    planAIn: "2026-05-05T04:00:00-07:00",
+    planAOut: "2026-05-05T05:00:00-07:00",
+    planBIn: "2026-05-05T05:00:00-07:00",
+    planBOut: "2026-05-05T06:00:00-07:00",
     pacer: "—",
     shoes: "",
     actions: "1 hr max",
@@ -230,10 +231,10 @@ const stations = [
   {
     name: "Camp Wamatochick",
     mile: 67.4,
-    planAIn: "2026-05-05T06:00:00",
-    planAOut: "2026-05-05T06:10:00",
-    planBIn: "2026-05-05T07:10:00",
-    planBOut: "2026-05-05T07:20:00",
+    planAIn: "2026-05-05T06:00:00-07:00",
+    planAOut: "2026-05-05T06:10:00-07:00",
+    planBIn: "2026-05-05T07:10:00-07:00",
+    planBOut: "2026-05-05T07:20:00-07:00",
     pacer: "—",
     shoes: "",
     actions: "Fast turnover",
@@ -242,10 +243,10 @@ const stations = [
   {
     name: "Whiskey Row",
     mile: 75.6,
-    planAIn: "2026-05-05T08:30:00",
-    planAOut: "2026-05-05T10:30:00",
-    planBIn: "2026-05-05T10:30:00",
-    planBOut: "2026-05-05T12:30:00",
+    planAIn: "2026-05-05T08:30:00-07:00",
+    planAOut: "2026-05-05T10:30:00-07:00",
+    planBIn: "2026-05-05T10:30:00-07:00",
+    planBOut: "2026-05-05T12:30:00-07:00",
     pacer: "—",
     shoes: "ROAD",
     actions: "Full reset + shoes",
@@ -254,10 +255,10 @@ const stations = [
   {
     name: "Watson Lake",
     mile: 82.8,
-    planAIn: "2026-05-05T13:00:00",
-    planAOut: "2026-05-05T13:10:00",
-    planBIn: "2026-05-05T15:00:00",
-    planBOut: "2026-05-05T15:10:00",
+    planAIn: "2026-05-05T13:00:00-07:00",
+    planAOut: "2026-05-05T13:10:00-07:00",
+    planBIn: "2026-05-05T15:00:00-07:00",
+    planBOut: "2026-05-05T15:10:00-07:00",
     pacer: "Lin / Ben",
     shoes: "",
     actions: "Quick refill, pacer starts",
@@ -266,10 +267,10 @@ const stations = [
   {
     name: "Fain Ranch by Satisfy",
     mile: 96.5,
-    planAIn: "2026-05-05T16:00:00",
-    planAOut: "2026-05-05T17:00:00",
-    planBIn: "2026-05-05T18:00:00",
-    planBOut: "2026-05-05T19:00:00",
+    planAIn: "2026-05-05T16:00:00-07:00",
+    planAOut: "2026-05-05T17:00:00-07:00",
+    planBIn: "2026-05-05T18:00:00-07:00",
+    planBOut: "2026-05-05T19:00:00-07:00",
     pacer: "Lin",
     shoes: "",
     actions: "Fuel before Mingus",
@@ -278,10 +279,10 @@ const stations = [
   {
     name: "Mingus Mountain",
     mile: 107.2,
-    planAIn: "2026-05-05T21:00:00",
-    planAOut: "2026-05-05T22:00:00",
-    planBIn: "2026-05-05T23:30:00",
-    planBOut: "2026-05-06T01:30:00",
+    planAIn: "2026-05-05T21:00:00-07:00",
+    planAOut: "2026-05-05T22:00:00-07:00",
+    planBIn: "2026-05-05T23:30:00-07:00",
+    planBOut: "2026-05-06T01:30:00-07:00",
     pacer: "Ben",
     shoes: "",
     actions: "Sleep + cold gear",
@@ -290,10 +291,10 @@ const stations = [
   {
     name: "Jerome",
     mile: 124.2,
-    planAIn: "2026-05-06T07:00:00",
-    planAOut: "2026-05-06T09:00:00",
-    planBIn: "2026-05-06T09:30:00",
-    planBOut: "2026-05-06T11:30:00",
+    planAIn: "2026-05-06T07:00:00-07:00",
+    planAOut: "2026-05-06T09:00:00-07:00",
+    planBIn: "2026-05-06T09:30:00-07:00",
+    planBOut: "2026-05-06T11:30:00-07:00",
     pacer: "Ben",
     shoes: "ROAD",
     actions: "Reset + shoes",
@@ -302,10 +303,10 @@ const stations = [
   {
     name: "Dead Horse",
     mile: 132.9,
-    planAIn: "2026-05-06T12:00:00",
-    planAOut: "2026-05-06T12:15:00",
-    planBIn: "2026-05-06T14:30:00",
-    planBOut: "2026-05-06T14:45:00",
+    planAIn: "2026-05-06T12:00:00-07:00",
+    planAOut: "2026-05-06T12:15:00-07:00",
+    planBIn: "2026-05-06T14:30:00-07:00",
+    planBOut: "2026-05-06T14:45:00-07:00",
     pacer: "Lin",
     shoes: "TRAIL",
     actions: "Switch for Sedona section",
@@ -314,10 +315,10 @@ const stations = [
   {
     name: "Deer Pass",
     mile: 146.9,
-    planAIn: "2026-05-06T16:00:00",
-    planAOut: "2026-05-06T17:00:00",
-    planBIn: "2026-05-06T18:30:00",
-    planBOut: "2026-05-06T19:30:00",
+    planAIn: "2026-05-06T16:00:00-07:00",
+    planAOut: "2026-05-06T17:00:00-07:00",
+    planBIn: "2026-05-06T18:30:00-07:00",
+    planBOut: "2026-05-06T19:30:00-07:00",
     pacer: "Ben",
     shoes: "",
     actions: "1 hr cap",
@@ -326,10 +327,10 @@ const stations = [
   {
     name: "Sedona Posse Grounds",
     mile: 159.1,
-    planAIn: "2026-05-06T22:30:00",
-    planAOut: "2026-05-07T00:30:00",
-    planBIn: "2026-05-07T01:30:00",
-    planBOut: "2026-05-07T04:00:00",
+    planAIn: "2026-05-06T22:30:00-07:00",
+    planAOut: "2026-05-07T00:30:00-07:00",
+    planBIn: "2026-05-07T01:30:00-07:00",
+    planBOut: "2026-05-07T04:00:00-07:00",
     pacer: "Ben",
     shoes: "",
     actions: "Critical sleep/reset",
@@ -338,10 +339,10 @@ const stations = [
   {
     name: "Schnebly Hill",
     mile: 176.1,
-    planAIn: "2026-05-07T07:00:00",
-    planAOut: "2026-05-07T08:00:00",
-    planBIn: "2026-05-07T10:00:00",
-    planBOut: "2026-05-07T11:00:00",
+    planAIn: "2026-05-07T07:00:00-07:00",
+    planAOut: "2026-05-07T08:00:00-07:00",
+    planBIn: "2026-05-07T10:00:00-07:00",
+    planBOut: "2026-05-07T11:00:00-07:00",
     pacer: "Joe",
     shoes: "ROAD",
     actions: "Recover climb + shoes",
@@ -350,10 +351,10 @@ const stations = [
   {
     name: "Munds Park",
     mile: 190.0,
-    planAIn: "2026-05-07T12:00:00",
-    planAOut: "2026-05-07T13:00:00",
-    planBIn: "2026-05-07T15:30:00",
-    planBOut: "2026-05-07T16:30:00",
+    planAIn: "2026-05-07T12:00:00-07:00",
+    planAOut: "2026-05-07T13:00:00-07:00",
+    planBIn: "2026-05-07T15:30:00-07:00",
+    planBOut: "2026-05-07T16:30:00-07:00",
     pacer: "—",
     shoes: "",
     actions: "Mental low zone",
@@ -362,10 +363,10 @@ const stations = [
   {
     name: "Kelly Canyon",
     mile: 202.7,
-    planAIn: "2026-05-07T16:00:00",
-    planAOut: "2026-05-07T16:10:00",
-    planBIn: "2026-05-07T20:00:00",
-    planBOut: "2026-05-07T20:10:00",
+    planAIn: "2026-05-07T16:00:00-07:00",
+    planAOut: "2026-05-07T16:10:00-07:00",
+    planBIn: "2026-05-07T20:00:00-07:00",
+    planBOut: "2026-05-07T20:10:00-07:00",
     pacer: "Ben",
     shoes: "",
     actions: "Fast turnover",
@@ -374,10 +375,10 @@ const stations = [
   {
     name: "Fort Tuthill",
     mile: 211.0,
-    planAIn: "2026-05-07T20:30:00",
-    planAOut: "2026-05-07T22:30:00",
-    planBIn: "2026-05-08T01:00:00",
-    planBOut: "2026-05-08T03:00:00",
+    planAIn: "2026-05-07T20:30:00-07:00",
+    planAOut: "2026-05-07T22:30:00-07:00",
+    planBIn: "2026-05-08T01:00:00-07:00",
+    planBOut: "2026-05-08T03:00:00-07:00",
     pacer: "Ben",
     shoes: "TRAIL",
     actions: "Final reset + shoes",
@@ -386,10 +387,10 @@ const stations = [
   {
     name: "Walnut Canyon",
     mile: 227.1,
-    planAIn: "2026-05-08T02:30:00",
-    planAOut: "2026-05-08T03:30:00",
-    planBIn: "2026-05-08T07:30:00",
-    planBOut: "2026-05-08T08:30:00",
+    planAIn: "2026-05-08T02:30:00-07:00",
+    planAOut: "2026-05-08T03:30:00-07:00",
+    planBIn: "2026-05-08T07:30:00-07:00",
+    planBOut: "2026-05-08T08:30:00-07:00",
     pacer: "Lin",
     shoes: "",
     actions: "Efficient stop",
@@ -398,10 +399,10 @@ const stations = [
   {
     name: "Wildcat Hill",
     mile: 234.1,
-    planAIn: "2026-05-08T06:30:00",
-    planAOut: "2026-05-08T07:00:00",
-    planBIn: "2026-05-08T11:00:00",
-    planBOut: "2026-05-08T11:30:00",
+    planAIn: "2026-05-08T06:30:00-07:00",
+    planAOut: "2026-05-08T07:00:00-07:00",
+    planBIn: "2026-05-08T11:00:00-07:00",
+    planBOut: "2026-05-08T11:30:00-07:00",
     pacer: "Joe C",
     shoes: "ROAD",
     actions: "Fuel + go",
@@ -410,10 +411,10 @@ const stations = [
   {
     name: "Trinity Heights",
     mile: 249.4,
-    planAIn: "2026-05-08T12:45:00",
-    planAOut: "2026-05-08T12:50:00",
-    planBIn: "2026-05-08T14:30:00",
-    planBOut: "2026-05-08T14:35:00",
+    planAIn: "2026-05-08T12:45:00-07:00",
+    planAOut: "2026-05-08T12:50:00-07:00",
+    planBIn: "2026-05-08T14:30:00-07:00",
+    planBOut: "2026-05-08T14:35:00-07:00",
     pacer: "—",
     shoes: "",
     actions: "Short touchpoint",
@@ -422,9 +423,9 @@ const stations = [
   {
     name: "Finish Line - Heritage Square",
     mile: 253.3,
-    planAIn: "2026-05-08T02:00:00",
+    planAIn: "2026-05-08T02:00:00-07:00",
     planAOut: "",
-    planBIn: "2026-05-08T15:00:00",
+    planBIn: "2026-05-08T15:00:00-07:00",
     planBOut: "",
     pacer: "—",
     shoes: "",
@@ -434,7 +435,11 @@ const stations = [
 ];
 
 function emptyRecords() {
-  return stations.map(() => ({ actualIn: "", actualOut: "", note: "" }));
+  return stations.map(() => ({
+    actualIn: "",
+    actualOut: "",
+    note: "",
+  }));
 }
 
 function formatMile(mile) {
@@ -455,7 +460,8 @@ function formatDateTime(value) {
 
 function formatTimeOnly(value) {
   if (!value) return "—";
-  return new Date(value).toLocaleTimeString([], {
+  const d = new Date(value);
+  return d.toLocaleTimeString([], {
     hour: "numeric",
     minute: "2-digit",
   });
@@ -484,6 +490,11 @@ function formatDuration(ms) {
   const hours = Math.floor(totalMinutes / 60);
   const minutes = totalMinutes % 60;
   return `${sign}${hours}h ${minutes}m`;
+}
+
+function formatHoursDecimal(hours) {
+  if (hours === null || hours === undefined || Number.isNaN(hours)) return "—";
+  return `${hours.toFixed(1)} h`;
 }
 
 function statusFromDelta(ms) {
@@ -518,13 +529,14 @@ function nextActionFromDelta(ms) {
   return "Stay the course.";
 }
 
-function buildExportPayload(planMode, records, panicMode) {
+function buildExportPayload(planMode, records, panicMode, crewForecastOpen) {
   return JSON.stringify(
     {
       version: 1,
       exportedAt: new Date().toISOString(),
       planMode,
       panicMode,
+      crewForecastOpen,
       records,
     },
     null,
@@ -550,6 +562,7 @@ export default function App() {
   const [exportText, setExportText] = useState("");
   const [importText, setImportText] = useState("");
   const [savedAt, setSavedAt] = useState("");
+  const [crewForecastOpen, setCrewForecastOpen] = useState(false);
 
   useEffect(() => {
     try {
@@ -559,6 +572,7 @@ export default function App() {
       if (parsed?.records) setRecords(parsed.records);
       if (parsed?.planMode) setPlanMode(parsed.planMode);
       if (typeof parsed?.panicMode === "boolean") setPanicMode(parsed.panicMode);
+      if (typeof parsed?.crewForecastOpen === "boolean") setCrewForecastOpen(parsed.crewForecastOpen);
       if (parsed?.savedAt) setSavedAt(parsed.savedAt);
     } catch (e) {
       console.error(e);
@@ -570,6 +584,7 @@ export default function App() {
       const payload = {
         planMode,
         panicMode,
+        crewForecastOpen,
         records,
         savedAt: new Date().toISOString(),
       };
@@ -578,12 +593,13 @@ export default function App() {
     } catch (e) {
       console.error(e);
     }
-  }, [planMode, panicMode, records]);
+  }, [planMode, panicMode, crewForecastOpen, records]);
 
   const data = useMemo(() => {
     return stations.map((station, idx) => {
       const plannedIn = planMode === "A" ? station.planAIn : station.planBIn;
       const plannedOut = planMode === "A" ? station.planAOut : station.planBOut;
+
       const prevPlannedOut =
         idx > 0
           ? planMode === "A"
@@ -630,10 +646,7 @@ export default function App() {
   const completedCount = data.filter((d) => d.actualIn || d.actualOut).length;
   const progress = Math.round((completedCount / data.length) * 100);
 
-  const activeIndex = data.findIndex(
-    (d, i) => !d.actualOut && (i === 0 || !!data[i - 1].actualOut || !!data[i - 1].actualIn)
-  );
-
+  const activeIndex = data.findIndex((d) => !d.actualOut);
   const currentIndex = activeIndex === -1 ? data.length - 1 : activeIndex;
   const current = data[currentIndex];
   const nextCritical = data.find((d, i) => i >= currentIndex && d.critical && !d.actualOut);
@@ -642,6 +655,64 @@ export default function App() {
     (max, d) => (d.deltaMs !== null && d.deltaMs > max ? d.deltaMs : max),
     0
   );
+
+  const lastActualPoint = useMemo(() => {
+    let latest = null;
+    data.forEach((station) => {
+      const timestamp = station.actualOut || station.actualIn || "";
+      if (!timestamp) return;
+      if (!latest || new Date(timestamp) > new Date(latest.timestamp)) {
+        latest = {
+          name: station.name,
+          mile: station.mile,
+          timestamp,
+          plannedIn: station.plannedIn,
+          plannedOut: station.plannedOut,
+        };
+      }
+    });
+    return latest;
+  }, [data]);
+
+  const forecast = useMemo(() => {
+    const finishMile = stations[stations.length - 1].mile;
+    const raceStart = new Date(RACE_START_ISO);
+
+    const planAFinish = new Date(stations[stations.length - 1].planAIn);
+    const planBFinish = new Date(stations[stations.length - 1].planBIn);
+
+    if (!lastActualPoint || !lastActualPoint.timestamp || !lastActualPoint.mile) {
+      return {
+        predictedFinishIso: "",
+        predictedFinishHours: null,
+        trendVsPlanA: null,
+        trendVsPlanB: null,
+        basedOnStation: "Need at least one actual checkpoint.",
+        basedOnElapsedMs: null,
+      };
+    }
+
+    const currentTime = new Date(lastActualPoint.timestamp);
+    const elapsedMs = currentTime - raceStart;
+    const elapsedHours = elapsedMs / 3600000;
+    const paceHoursPerMile = elapsedHours / lastActualPoint.mile;
+    const predictedFinishHours = paceHoursPerMile * finishMile;
+    const predictedFinishIso = new Date(
+      raceStart.getTime() + predictedFinishHours * 3600000
+    ).toISOString();
+
+    const trendVsPlanA = new Date(predictedFinishIso) - planAFinish;
+    const trendVsPlanB = new Date(predictedFinishIso) - planBFinish;
+
+    return {
+      predictedFinishIso,
+      predictedFinishHours,
+      trendVsPlanA,
+      trendVsPlanB,
+      basedOnStation: lastActualPoint.name,
+      basedOnElapsedMs: elapsedMs,
+    };
+  }, [lastActualPoint]);
 
   function pushUndoSnapshot(currentRecords = records) {
     setUndoStack((prev) => [JSON.stringify(currentRecords), ...prev].slice(0, 20));
@@ -683,11 +754,11 @@ export default function App() {
   }
 
   function exportData() {
-    setExportText(buildExportPayload(planMode, records, panicMode));
+    setExportText(buildExportPayload(planMode, records, panicMode, crewForecastOpen));
   }
 
   async function copyExport() {
-    const payload = buildExportPayload(planMode, records, panicMode);
+    const payload = buildExportPayload(planMode, records, panicMode, crewForecastOpen);
     setExportText(payload);
     try {
       await navigator.clipboard.writeText(payload);
@@ -702,6 +773,7 @@ export default function App() {
       if (parsed?.records?.length === stations.length) setRecords(parsed.records);
       if (parsed?.planMode) setPlanMode(parsed.planMode);
       if (typeof parsed?.panicMode === "boolean") setPanicMode(parsed.panicMode);
+      if (typeof parsed?.crewForecastOpen === "boolean") setCrewForecastOpen(parsed.crewForecastOpen);
     } catch {
       alert("Import failed. Make sure you pasted the full backup JSON.");
     }
@@ -714,6 +786,7 @@ export default function App() {
     setImportText("");
     setPanicMode(false);
     setPlanMode("A");
+    setCrewForecastOpen(false);
     localStorage.removeItem(STORAGE_KEY);
   }
 
@@ -726,6 +799,7 @@ export default function App() {
     if (parsed?.records) setRecords(parsed.records);
     if (parsed?.planMode) setPlanMode(parsed.planMode);
     if (typeof parsed?.panicMode === "boolean") setPanicMode(parsed.panicMode);
+    if (typeof parsed?.crewForecastOpen === "boolean") setCrewForecastOpen(parsed.crewForecastOpen);
     if (parsed?.savedAt) setSavedAt(parsed.savedAt);
   }
 
@@ -1053,6 +1127,7 @@ export default function App() {
         {tab === "crew" && (
           <div style={styles.card}>
             <div style={styles.sectionTitle}>Crew rules</div>
+
             <div style={{ display: "grid", gap: "10px", marginTop: "12px" }}>
               <div
                 style={{
@@ -1104,6 +1179,64 @@ export default function App() {
                     : nextActionFromDelta(biggestLoss)}
                 </div>
               </div>
+
+              <button
+                style={styles.smallButton(crewForecastOpen ? "primary" : "secondary")}
+                onClick={() => setCrewForecastOpen((v) => !v)}
+              >
+                {crewForecastOpen ? "Hide forecast tools" : "Show forecast tools"}
+              </button>
+
+              {crewForecastOpen && (
+                <div style={{ display: "grid", gap: "10px" }}>
+                  <div style={styles.statBox}>
+                    <div style={{ fontWeight: 800 }}>Predicted finish</div>
+                    <div style={{ marginTop: "6px", fontSize: "20px", fontWeight: 800 }}>
+                      {forecast.predictedFinishIso ? formatDateTime(forecast.predictedFinishIso) : "—"}
+                    </div>
+                    <div style={{ ...styles.muted, marginTop: "6px" }}>
+                      Based on actual trend through {forecast.basedOnStation}
+                    </div>
+                  </div>
+
+                  <div style={styles.grid2}>
+                    <div style={styles.statBox}>
+                      <div style={styles.muted}>Predicted cumulative hours</div>
+                      <div style={{ fontWeight: 800, fontSize: "18px" }}>
+                        {formatHoursDecimal(forecast.predictedFinishHours)}
+                      </div>
+                    </div>
+                    <div style={styles.statBox}>
+                      <div style={styles.muted}>Elapsed at trend point</div>
+                      <div style={{ fontWeight: 800, fontSize: "18px" }}>
+                        {formatDuration(forecast.basedOnElapsedMs)}
+                      </div>
+                    </div>
+                    <div style={styles.statBox}>
+                      <div style={styles.muted}>Trend vs Plan A</div>
+                      <div style={{ fontWeight: 800, fontSize: "18px" }}>
+                        {formatDuration(forecast.trendVsPlanA)}
+                      </div>
+                    </div>
+                    <div style={styles.statBox}>
+                      <div style={styles.muted}>Trend vs Plan B</div>
+                      <div style={{ fontWeight: 800, fontSize: "18px" }}>
+                        {formatDuration(forecast.trendVsPlanB)}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div style={styles.statBox}>
+                    <div style={{ fontWeight: 800 }}>How this works</div>
+                    <div style={{ ...styles.muted, marginTop: "6px", lineHeight: 1.6 }}>
+                      Forecast updates automatically from the furthest station with an actual IN or OUT
+                      time. It uses your current real elapsed pace per mile and projects that to the
+                      finish, so crew can see where finish time is trending even when you are between
+                      Plan A and Plan B.
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         )}
