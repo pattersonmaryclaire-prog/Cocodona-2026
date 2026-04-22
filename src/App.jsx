@@ -473,6 +473,26 @@ function formatTimeOnly(value) {
   });
 }
 
+function toDateTimeLocalValue(value) {
+  if (!value) return "";
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return "";
+  const pad = (n) => String(n).padStart(2, "0");
+  const year = d.getFullYear();
+  const month = pad(d.getMonth() + 1);
+  const day = pad(d.getDate());
+  const hours = pad(d.getHours());
+  const minutes = pad(d.getMinutes());
+  return `${year}-${month}-${day}T${hours}:${minutes}`;
+}
+
+function fromDateTimeLocalValue(value) {
+  if (!value) return "";
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return "";
+  return d.toISOString();
+}
+
 function formatDuration(ms) {
   if (ms === null || ms === undefined || Number.isNaN(ms)) return "—";
   const sign = ms < 0 ? "-" : "";
@@ -902,19 +922,23 @@ function App() {
               <div style={styles.statBox}>
                 <div style={styles.muted}>Actual in</div>
                 <input
+                  type="datetime-local"
                   style={{ ...styles.input, marginTop: "6px" }}
-                  value={current.actualIn}
-                  onChange={(e) => setField(currentIndex, "actualIn", e.target.value)}
-                  placeholder="2026-05-04T05:00:00"
+                  value={toDateTimeLocalValue(current.actualIn)}
+                  onChange={(e) =>
+                    setField(currentIndex, "actualIn", fromDateTimeLocalValue(e.target.value))
+                  }
                 />
               </div>
               <div style={styles.statBox}>
                 <div style={styles.muted}>Actual out</div>
                 <input
+                  type="datetime-local"
                   style={{ ...styles.input, marginTop: "6px" }}
-                  value={current.actualOut}
-                  onChange={(e) => setField(currentIndex, "actualOut", e.target.value)}
-                  placeholder="2026-05-04T05:00:00"
+                  value={toDateTimeLocalValue(current.actualOut)}
+                  onChange={(e) =>
+                    setField(currentIndex, "actualOut", fromDateTimeLocalValue(e.target.value))
+                  }
                 />
               </div>
               <div style={styles.statBox}>
@@ -1010,6 +1034,9 @@ function App() {
                       </div>
                       <div>
                         Actual out: <strong>{formatTimeOnly(station.actualOut)}</strong>
+                      </div>
+                      <div>
+                        Stop time: <strong>{formatDuration(station.stopMs)}</strong>
                       </div>
                     </div>
                     <div style={{ ...styles.grid2, marginTop: "10px" }}>
