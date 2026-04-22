@@ -81,19 +81,21 @@ const styles = {
     boxSizing: "border-box",
     resize: "vertical",
   },
-  smallButton: (variant = "primary") => ({
+  smallButton: (variant = "primary", disabled = false) => ({
     height: "44px",
     borderRadius: "16px",
     border: variant === "secondary" ? "1px solid #cbd5e1" : "none",
     background:
-      variant === "secondary"
-        ? "#fff"
-        : variant === "danger"
-          ? "#dc2626"
-          : "#0f172a",
-    color: variant === "secondary" ? "#0f172a" : "#fff",
+      disabled
+        ? "#e2e8f0"
+        : variant === "secondary"
+          ? "#fff"
+          : variant === "danger"
+            ? "#dc2626"
+            : "#0f172a",
+    color: disabled ? "#94a3b8" : variant === "secondary" ? "#0f172a" : "#fff",
     fontWeight: 700,
-    cursor: "pointer",
+    cursor: disabled ? "not-allowed" : "pointer",
     padding: "0 14px",
   }),
   progressWrap: {
@@ -545,6 +547,7 @@ function App() {
   const [planMode, setPlanMode] = useState("A");
   const [panicMode, setPanicMode] = useState(false);
   const [records, setRecords] = useState(emptyRecords);
+  const [undoStack, setUndoStack] = useState([]);
   const [tab, setTab] = useState("active");
   const [exportText, setExportText] = useState("");
   const [importText, setImportText] = useState("");
@@ -634,12 +637,18 @@ function App() {
     0
   );
 
+  function pushUndoSnapshot(currentRecords = records) {
+    setUndoStack((prev) => [JSON.stringify(currentRecords), ...prev].slice(0, 20));
+  }
+
   function stamp(index, field) {
+    pushUndoSnapshot(records);
     const now = new Date().toISOString();
     setRecords((prev) => prev.map((r, i) => (i === index ? { ...r, [field]: now } : r)));
   }
 
   function clearStation(index) {
+    pushUndoSnapshot(records);
     setRecords((prev) =>
       prev.map((r, i) => (i === index ? { actualIn: "", actualOut: "", note: "" } : r))
     );
@@ -647,6 +656,24 @@ function App() {
 
   function setNote(index, value) {
     setRecords((prev) => prev.map((r, i) => (i === index ? { ...r, note: value } : r)));
+  }
+
+  function setField(index, field, value) {
+    pushUndoSnapshot(records);
+    setRecords((prev) => prev.map((r, i) => (i === index ? { ...r, [field]: value } : r)));
+  }
+
+  function undoLastAction() {
+    setUndoStack((prev) => {
+      if (!prev.length) return prev;
+      const [latest, ...rest] = prev;
+      try {
+        setRecords(JSON.parse(latest));
+      } catch (e) {
+        console.error(e);
+      }
+      return rest;
+    });
   }
 
   function exportData() {
@@ -675,6 +702,7 @@ function App() {
   }
 
   function resetAll() {
+    pushUndoSnapshot(records);
     setRecords(emptyRecords());
     setExportText("");
     setImportText("");
@@ -788,6 +816,13 @@ function App() {
             <button style={styles.smallButton("secondary")} onClick={hardReloadApp}>
               Refresh app
             </button>
+            <button
+              style={styles.smallButton("secondary", undoStack.length === 0)}
+              onClick={undoLastAction}
+              disabled={undoStack.length === 0}
+            >
+              Undo last action
+            </button>
           </div>
         </div>
 
@@ -866,11 +901,21 @@ function App() {
             <div style={{ ...styles.grid2, marginTop: "12px" }}>
               <div style={styles.statBox}>
                 <div style={styles.muted}>Actual in</div>
-                <div style={{ fontWeight: 800 }}>{formatDateTime(current.actualIn)}</div>
+                <input
+                  style={{ ...styles.input, marginTop: "6px" }}
+                  value={current.actualIn}
+                  onChange={(e) => setField(currentIndex, "actualIn", e.target.value)}
+                  placeholder="2026-05-04T05:00:00"
+                />
               </div>
               <div style={styles.statBox}>
                 <div style={styles.muted}>Actual out</div>
-                <div style={{ fontWeight: 800 }}>{formatDateTime(current.actualOut)}</div>
+                <input
+                  style={{ ...styles.input, marginTop: "6px" }}
+                  value={current.actualOut}
+                  onChange={(e) => setField(currentIndex, "actualOut", e.target.value)}
+                  placeholder="2026-05-04T05:00:00"
+                />
               </div>
               <div style={styles.statBox}>
                 <div style={styles.muted}>Segment delta</div>
