@@ -1,37 +1,59 @@
 import React, { useEffect, useMemo, useState } from "react";
 
-const STORAGE_KEY = "";
+const STORAGE_KEY = "cocodona-crew-console-final-v1";
 
 const styles = {
   page: {
     minHeight: "100vh",
-    background: "#f8fafc",
+    background: "linear-gradient(180deg, #FFF8EF 0%, #F8EFE2 100%)",
     padding: "12px",
     fontFamily: "Inter, system-ui, -apple-system, sans-serif",
-    color: "#0f172a",
+    color: "#3B2432",
+    boxSizing: "border-box",
+    overflowX: "hidden",
   },
   wrap: {
-    maxWidth: "460px",
+    width: "100%",
+    maxWidth: "420px",
     margin: "0 auto",
     display: "grid",
     gap: "12px",
     paddingBottom: "32px",
+    boxSizing: "border-box",
   },
   card: {
-    background: "#ffffff",
+    width: "100%",
+    background: "#FFFDF9",
     borderRadius: "24px",
     padding: "16px",
-    boxShadow: "0 8px 24px rgba(15, 23, 42, 0.08)",
-    border: "1px solid #e2e8f0",
+    boxShadow: "0 10px 24px rgba(59, 36, 50, 0.10)",
+    border: "1px solid #E8D7C2",
+    boxSizing: "border-box",
+    overflowX: "hidden",
   },
-  sectionTitle: { fontSize: "18px", fontWeight: 700, margin: 0 },
-  muted: { color: "#64748b", fontSize: "13px" },
-  grid2: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" },
+  sectionTitle: {
+    fontSize: "18px",
+    fontWeight: 700,
+    margin: 0,
+    color: "#3B2432",
+  },
+  muted: {
+    color: "#8F7D63",
+    fontSize: "13px",
+  },
+  grid2: {
+    display: "grid",
+    gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+    gap: "10px",
+    width: "100%",
+  },
   statBox: {
-    background: "#fff",
+    background: "#FFF8EF",
     borderRadius: "18px",
     padding: "12px",
-    border: "1px solid #e2e8f0",
+    border: "1px solid #E8D7C2",
+    minWidth: 0,
+    boxSizing: "border-box",
   },
   badge: {
     display: "inline-flex",
@@ -40,75 +62,95 @@ const styles = {
     borderRadius: "999px",
     padding: "6px 10px",
     fontSize: "12px",
-    fontWeight: 600,
-    border: "1px solid #cbd5e1",
-    background: "#fff",
+    fontWeight: 700,
+    border: "1px solid #E7B7A9",
+    background: "#FDE2EA",
+    color: "#A7345D",
+    maxWidth: "100%",
+    boxSizing: "border-box",
   },
   bigButton: {
     height: "88px",
+    width: "100%",
     borderRadius: "22px",
     border: "none",
     fontSize: "22px",
     fontWeight: 800,
     cursor: "pointer",
+    boxSizing: "border-box",
   },
-  tabRow: { display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: "8px" },
+  tabRow: {
+    display: "grid",
+    gridTemplateColumns: "repeat(4, minmax(0, 1fr))",
+    gap: "8px",
+    width: "100%",
+  },
   tab: (active) => ({
     height: "44px",
     borderRadius: "16px",
-    border: active ? "1px solid #0f172a" : "1px solid #cbd5e1",
-    background: active ? "#0f172a" : "#fff",
-    color: active ? "#fff" : "#0f172a",
+    border: active ? "1px solid #EB4C78" : "1px solid #E8D7C2",
+    background: active ? "#EB4C78" : "#FFFDF9",
+    color: active ? "#FFF8EF" : "#3B2432",
     fontWeight: 700,
     cursor: "pointer",
+    minWidth: 0,
+    width: "100%",
+    boxSizing: "border-box",
   }),
   input: {
     width: "100%",
     height: "44px",
     borderRadius: "16px",
-    border: "1px solid #cbd5e1",
+    border: "1px solid #D8C4AA",
     padding: "0 12px",
     fontSize: "14px",
     boxSizing: "border-box",
+    minWidth: 0,
+    background: "#FFFDF9",
+    color: "#3B2432",
   },
   textarea: {
     width: "100%",
     minHeight: "120px",
     borderRadius: "16px",
-    border: "1px solid #cbd5e1",
+    border: "1px solid #D8C4AA",
     padding: "12px",
     fontSize: "13px",
     boxSizing: "border-box",
     resize: "vertical",
+    background: "#FFFDF9",
+    color: "#3B2432",
   },
   smallButton: (variant = "primary", disabled = false) => ({
     height: "44px",
+    width: "100%",
     borderRadius: "16px",
-    border: variant === "secondary" ? "1px solid #cbd5e1" : "none",
-    background:
-      disabled
-        ? "#e2e8f0"
-        : variant === "secondary"
-          ? "#fff"
-          : variant === "danger"
-            ? "#dc2626"
-            : "#0f172a",
-    color: disabled ? "#94a3b8" : variant === "secondary" ? "#0f172a" : "#fff",
+    border: variant === "secondary" ? "1px solid #D8C4AA" : "none",
+    background: disabled
+      ? "#E9E2D8"
+      : variant === "secondary"
+        ? "#FFFDF9"
+        : variant === "danger"
+          ? "#D94C3D"
+          : "#EB4C78",
+    color: disabled ? "#A89A89" : variant === "secondary" ? "#3B2432" : "#FFF8EF",
     fontWeight: 700,
     cursor: disabled ? "not-allowed" : "pointer",
     padding: "0 14px",
+    boxSizing: "border-box",
+    minWidth: 0,
   }),
   progressWrap: {
     width: "100%",
     height: "8px",
-    background: "#e2e8f0",
+    background: "#EADCCB",
     borderRadius: "999px",
     overflow: "hidden",
   },
   progressBar: (value) => ({
     width: `${value}%`,
     height: "100%",
-    background: "#0f172a",
+    background: "linear-gradient(90deg, #F4DC00 0%, #F46A3A 50%, #EB4C78 100%)",
   }),
 };
 
@@ -138,30 +180,6 @@ const stations = [
     critical: false,
   },
   {
-    name: "Water Station 10.4",
-    mile: 10.4,
-    planAIn: "2026-05-04T08:40:00",
-    planAOut: "2026-05-04T08:45:00",
-    planBIn: "2026-05-04T09:05:00",
-    planBOut: "2026-05-04T09:10:00",
-    pacer: "—",
-    shoes: "",
-    actions: "Quick water touchpoint",
-    critical: false,
-  },
-  {
-    name: "Water Station 24.6",
-    mile: 24.6,
-    planAIn: "2026-05-04T12:05:00",
-    planAOut: "2026-05-04T12:10:00",
-    planBIn: "2026-05-04T12:45:00",
-    planBOut: "2026-05-04T12:50:00",
-    pacer: "—",
-    shoes: "",
-    actions: "Quick water touchpoint",
-    critical: false,
-  },
-  {
     name: "Lane Mtn by UltrAspire",
     mile: 32.5,
     planAIn: "2026-05-04T14:00:00",
@@ -171,18 +189,6 @@ const stations = [
     pacer: "—",
     shoes: "",
     actions: "30 min cap",
-    critical: false,
-  },
-  {
-    name: "Bumble Bee Ranch HOLD",
-    mile: null,
-    planAIn: "",
-    planAOut: "",
-    planBIn: "",
-    planBOut: "",
-    pacer: "—",
-    shoes: "",
-    actions: "Crew hold/checkpoint only",
     critical: false,
   },
   {
@@ -318,18 +324,6 @@ const stations = [
     critical: false,
   },
   {
-    name: "Water Station 153.6",
-    mile: 153.6,
-    planAIn: "2026-05-06T19:30:00",
-    planAOut: "2026-05-06T19:35:00",
-    planBIn: "2026-05-06T22:10:00",
-    planBOut: "2026-05-06T22:15:00",
-    pacer: "—",
-    shoes: "",
-    actions: "Quick water touchpoint",
-    critical: false,
-  },
-  {
     name: "Sedona Posse Grounds",
     mile: 159.1,
     planAIn: "2026-05-06T22:30:00",
@@ -340,18 +334,6 @@ const stations = [
     shoes: "",
     actions: "Critical sleep/reset",
     critical: true,
-  },
-  {
-    name: "Water Station 170.4",
-    mile: 170.4,
-    planAIn: "2026-05-07T04:30:00",
-    planAOut: "2026-05-07T04:35:00",
-    planBIn: "2026-05-07T07:40:00",
-    planBOut: "2026-05-07T07:45:00",
-    pacer: "—",
-    shoes: "",
-    actions: "Quick water touchpoint",
-    critical: false,
   },
   {
     name: "Schnebly Hill",
@@ -421,7 +403,7 @@ const stations = [
     planBIn: "2026-05-08T11:00:00",
     planBOut: "2026-05-08T11:30:00",
     pacer: "Joe C",
-    shoes: "",
+    shoes: "ROAD",
     actions: "Fuel + go",
     critical: false,
   },
@@ -445,14 +427,20 @@ const stations = [
     planBIn: "2026-05-08T15:00:00",
     planBOut: "",
     pacer: "—",
-    shoes: "ROAD",
+    shoes: "",
     actions: "Empty the tank",
     critical: false,
   },
 ];
 
-const emptyRecords = () =>
-  stations.map(() => ({ actualIn: "", actualOut: "", note: "" }));
+function emptyRecords() {
+  return stations.map(() => ({ actualIn: "", actualOut: "", note: "" }));
+}
+
+function formatMile(mile) {
+  if (mile === null || mile === undefined || mile === "") return "—";
+  return Number.isInteger(mile) ? String(mile) : mile.toFixed(1);
+}
 
 function formatDateTime(value) {
   if (!value) return "—";
@@ -478,12 +466,7 @@ function toDateTimeLocalValue(value) {
   const d = new Date(value);
   if (Number.isNaN(d.getTime())) return "";
   const pad = (n) => String(n).padStart(2, "0");
-  const year = d.getFullYear();
-  const month = pad(d.getMonth() + 1);
-  const day = pad(d.getDate());
-  const hours = pad(d.getHours());
-  const minutes = pad(d.getMinutes());
-  return `${year}-${month}-${day}T${hours}:${minutes}`;
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
 function fromDateTimeLocalValue(value) {
@@ -505,18 +488,18 @@ function formatDuration(ms) {
 
 function statusFromDelta(ms) {
   if (ms === null || ms === undefined || Number.isNaN(ms)) {
-    return { label: "Pending", bg: "#e2e8f0", color: "#334155" };
+    return { label: "Pending", bg: "#E9E2D8", color: "#6B5B4D" };
   }
   if (ms > 60 * 60000) {
-    return { label: "Major loss", bg: "#fee2e2", color: "#991b1b" };
+    return { label: "Major loss", bg: "#FDE2EA", color: "#A7345D" };
   }
   if (ms > 30 * 60000) {
-    return { label: "Cut next stop", bg: "#ffedd5", color: "#9a3412" };
+    return { label: "Cut next stop", bg: "#FFF1D6", color: "#A85A1F" };
   }
   if (ms < -20 * 60000) {
-    return { label: "Ahead — control", bg: "#dbeafe", color: "#1d4ed8" };
+    return { label: "Ahead — control", bg: "#F6E7D8", color: "#8F5E3B" };
   }
-  return { label: "On plan", bg: "#dcfce7", color: "#166534" };
+  return { label: "On plan", bg: "#F8E7B5", color: "#6E5A00" };
 }
 
 function nextActionFromDelta(ms) {
@@ -549,21 +532,16 @@ function buildExportPayload(planMode, records, panicMode) {
   );
 }
 
-function formatMile(mile) {
-  if (mile === null || mile === undefined || mile === "") return "—";
-  return Number.isInteger(mile) ? String(mile) : mile.toFixed(1);
-}
-
 function getCurrentStoredState() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     return raw ? JSON.parse(raw) : null;
-  } catch (e) {
+  } catch {
     return null;
   }
 }
 
-function App() {
+export default function App() {
   const [planMode, setPlanMode] = useState("A");
   const [panicMode, setPanicMode] = useState(false);
   const [records, setRecords] = useState(emptyRecords);
@@ -612,24 +590,30 @@ function App() {
             ? stations[idx - 1].planAOut
             : stations[idx - 1].planBOut
           : plannedOut;
+
       const prevActualOut =
         idx > 0 ? records[idx - 1].actualOut : records[0].actualOut || records[0].actualIn;
+
       const plannedSplitMs =
         idx === 0 || !plannedIn || !prevPlannedOut
           ? null
           : new Date(plannedIn) - new Date(prevPlannedOut);
+
       const actualSplitMs =
         idx === 0 || !records[idx].actualIn || !prevActualOut
           ? null
           : new Date(records[idx].actualIn) - new Date(prevActualOut);
+
       const deltaMs =
         actualSplitMs !== null && plannedSplitMs !== null
           ? actualSplitMs - plannedSplitMs
           : null;
+
       const stopMs =
         records[idx].actualIn && records[idx].actualOut
           ? new Date(records[idx].actualOut) - new Date(records[idx].actualIn)
           : null;
+
       return {
         ...station,
         plannedIn,
@@ -645,9 +629,11 @@ function App() {
 
   const completedCount = data.filter((d) => d.actualIn || d.actualOut).length;
   const progress = Math.round((completedCount / data.length) * 100);
+
   const activeIndex = data.findIndex(
     (d, i) => !d.actualOut && (i === 0 || !!data[i - 1].actualOut || !!data[i - 1].actualIn)
   );
+
   const currentIndex = activeIndex === -1 ? data.length - 1 : activeIndex;
   const current = data[currentIndex];
   const nextCritical = data.find((d, i) => i >= currentIndex && d.critical && !d.actualOut);
@@ -667,6 +653,11 @@ function App() {
     setRecords((prev) => prev.map((r, i) => (i === index ? { ...r, [field]: now } : r)));
   }
 
+  function setField(index, field, value) {
+    pushUndoSnapshot(records);
+    setRecords((prev) => prev.map((r, i) => (i === index ? { ...r, [field]: value } : r)));
+  }
+
   function clearStation(index) {
     pushUndoSnapshot(records);
     setRecords((prev) =>
@@ -676,11 +667,6 @@ function App() {
 
   function setNote(index, value) {
     setRecords((prev) => prev.map((r, i) => (i === index ? { ...r, note: value } : r)));
-  }
-
-  function setField(index, field, value) {
-    pushUndoSnapshot(records);
-    setRecords((prev) => prev.map((r, i) => (i === index ? { ...r, [field]: value } : r)));
   }
 
   function undoLastAction() {
@@ -716,7 +702,7 @@ function App() {
       if (parsed?.records?.length === stations.length) setRecords(parsed.records);
       if (parsed?.planMode) setPlanMode(parsed.planMode);
       if (typeof parsed?.panicMode === "boolean") setPanicMode(parsed.panicMode);
-    } catch (e) {
+    } catch {
       alert("Import failed. Make sure you pasted the full backup JSON.");
     }
   }
@@ -761,11 +747,11 @@ function App() {
               alignItems: "flex-start",
             }}
           >
-            <div>
+            <div style={{ minWidth: 0 }}>
               <h1 style={{ margin: 0, fontSize: "24px", fontWeight: 800 }}>
-                Cocodona Live Tracker
+                Cocodona Crew Console
               </h1>
-              <div style={styles.muted}></div>
+              <div style={styles.muted}>Single-file race-day mobile app</div>
             </div>
             <div style={styles.badge}>Plan {planMode}</div>
           </div>
@@ -795,7 +781,7 @@ function App() {
             </div>
           </div>
 
-          <div style={{ ...styles.statBox, marginTop: "10px", background: "#ecfdf5" }}>
+          <div style={{ ...styles.statBox, marginTop: "10px", background: "#FFF1D6" }}>
             <div style={{ fontWeight: 700 }}>Auto-saved locally</div>
             <div style={{ ...styles.muted, marginTop: "4px" }}>
               Last saved: {savedAt ? formatDateTime(savedAt) : "—"}
@@ -864,7 +850,7 @@ function App() {
                 gap: "10px",
               }}
             >
-              <div>
+              <div style={{ minWidth: 0 }}>
                 <div style={{ fontSize: "22px", fontWeight: 800, lineHeight: 1.15 }}>
                   {current.name}
                 </div>
@@ -875,8 +861,8 @@ function App() {
               <div
                 style={{
                   ...styles.badge,
-                  background: panicMode ? "#fee2e2" : status.bg,
-                  color: panicMode ? "#991b1b" : status.color,
+                  background: panicMode ? "#FDE2EA" : status.bg,
+                  color: panicMode ? "#A7345D" : status.color,
                   borderColor: "transparent",
                 }}
               >
@@ -905,13 +891,13 @@ function App() {
 
             <div style={{ ...styles.grid2, marginTop: "12px" }}>
               <button
-                style={{ ...styles.bigButton, background: "#0f172a", color: "#fff" }}
+                style={{ ...styles.bigButton, background: "#EB4C78", color: "#FFF8EF" }}
                 onClick={() => stamp(currentIndex, "actualIn")}
               >
                 TAP IN
               </button>
               <button
-                style={{ ...styles.bigButton, background: "#e2e8f0", color: "#0f172a" }}
+                style={{ ...styles.bigButton, background: "#F4DC00", color: "#3B2432" }}
                 onClick={() => stamp(currentIndex, "actualOut")}
               >
                 TAP OUT
@@ -956,8 +942,8 @@ function App() {
                 ...styles.card,
                 padding: "14px",
                 marginTop: "12px",
-                background: panicMode ? "#fff1f2" : "#fffbeb",
-                border: panicMode ? "1px solid #fecdd3" : "1px solid #fde68a",
+                background: panicMode ? "#FDE2EA" : "#FFF1D6",
+                border: panicMode ? "1px solid #EB4C78" : "1px solid #F4DC00",
                 boxShadow: "none",
               }}
             >
@@ -1000,28 +986,31 @@ function App() {
                   <div
                     key={station.name}
                     style={{
-                      background: "#f8fafc",
+                      background: "#FFF8EF",
                       borderRadius: "18px",
                       padding: "12px",
-                      border: "1px solid #e2e8f0",
+                      border: "1px solid #E8D7C2",
+                      boxSizing: "border-box",
+                      overflowX: "hidden",
                     }}
                   >
                     <div style={{ display: "flex", justifyContent: "space-between", gap: "8px" }}>
-                      <div>
+                      <div style={{ minWidth: 0 }}>
                         <div style={{ fontWeight: 800 }}>{station.name}</div>
                         <div style={styles.muted}>Mile {formatMile(station.mile)}</div>
                       </div>
                       <div
                         style={{
                           ...styles.badge,
-                          background: panicMode ? "#fee2e2" : s.bg,
-                          color: panicMode ? "#991b1b" : s.color,
+                          background: panicMode ? "#FDE2EA" : s.bg,
+                          color: panicMode ? "#A7345D" : s.color,
                           borderColor: "transparent",
                         }}
                       >
                         {panicMode ? "Trim stop" : s.label}
                       </div>
                     </div>
+
                     <div style={{ ...styles.grid2, marginTop: "8px", fontSize: "13px" }}>
                       <div>
                         In: <strong>{formatTimeOnly(station.plannedIn)}</strong>
@@ -1039,8 +1028,12 @@ function App() {
                         Stop time: <strong>{formatDuration(station.stopMs)}</strong>
                       </div>
                     </div>
+
                     <div style={{ ...styles.grid2, marginTop: "10px" }}>
-                      <button style={styles.smallButton("primary")} onClick={() => stamp(idx, "actualIn")}>
+                      <button
+                        style={styles.smallButton("primary")}
+                        onClick={() => stamp(idx, "actualIn")}
+                      >
                         IN
                       </button>
                       <button
@@ -1063,17 +1056,18 @@ function App() {
             <div style={{ display: "grid", gap: "10px", marginTop: "12px" }}>
               <div
                 style={{
-                  background: "#fff1f2",
-                  border: "1px solid #fecdd3",
+                  background: "#FDE2EA",
+                  border: "1px solid #EB4C78",
                   borderRadius: "18px",
                   padding: "12px",
                 }}
               >
                 <div style={{ fontWeight: 800 }}>Critical stops</div>
-                <div style={{ ...styles.muted, color: "#881337", marginTop: "6px" }}>
+                <div style={{ ...styles.muted, color: "#A7345D", marginTop: "6px" }}>
                   Whiskey, Mingus, Jerome, Sedona, Tuthill
                 </div>
               </div>
+
               <div style={styles.statBox}>
                 <div style={{ fontWeight: 800 }}>Time rules</div>
                 <div style={{ ...styles.muted, marginTop: "6px", lineHeight: 1.6 }}>
@@ -1084,6 +1078,7 @@ function App() {
                   &gt;60 min behind: cut non-critical sleep
                 </div>
               </div>
+
               <div style={styles.statBox}>
                 <div style={{ fontWeight: 800 }}>Shoe changes</div>
                 <div style={{ ...styles.muted, marginTop: "6px", lineHeight: 1.6 }}>
@@ -1097,9 +1092,10 @@ function App() {
                   <br />
                   Tuthill → TRAIL
                   <br />
-                  Finish zone → ROAD
+                  Wildcat → ROAD
                 </div>
               </div>
+
               <div style={styles.statBox}>
                 <div style={{ fontWeight: 800 }}>Live recommendation</div>
                 <div style={{ ...styles.muted, marginTop: "6px" }}>
@@ -1118,6 +1114,7 @@ function App() {
             <div style={{ ...styles.muted, marginTop: "6px" }}>
               Use this before crew phone handoffs or if you want a second-device backup.
             </div>
+
             <div style={{ ...styles.grid2, marginTop: "12px" }}>
               <button style={styles.smallButton("primary")} onClick={exportData}>
                 Export
@@ -1126,18 +1123,21 @@ function App() {
                 Copy JSON
               </button>
             </div>
+
             <textarea
               style={{ ...styles.textarea, marginTop: "12px" }}
               placeholder="Exported backup appears here."
               value={exportText}
               onChange={(e) => setExportText(e.target.value)}
             />
+
             <textarea
               style={{ ...styles.textarea, marginTop: "12px" }}
               placeholder="Paste a backup here to restore this device."
               value={importText}
               onChange={(e) => setImportText(e.target.value)}
             />
+
             <div style={{ display: "grid", gap: "10px", marginTop: "12px" }}>
               <button style={styles.smallButton("secondary")} onClick={importData}>
                 Restore from pasted backup
@@ -1152,5 +1152,3 @@ function App() {
     </div>
   );
 }
-
-export default App;
