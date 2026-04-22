@@ -763,9 +763,9 @@ function App() {
           >
             <div>
               <h1 style={{ margin: 0, fontSize: "24px", fontWeight: 800 }}>
-                Cocodona Crew Console
+                Cocodona Live Tracker
               </h1>
-              <div style={styles.muted}>Single-file race-day mobile app</div>
+              <div style={styles.muted}></div>
             </div>
             <div style={styles.badge}>Plan {planMode}</div>
           </div>
