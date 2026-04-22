@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 
-const STORAGE_KEY = "cocodona-crew-console-single-file-v1";
+const STORAGE_KEY = "";
 
 const styles = {
   page: {
