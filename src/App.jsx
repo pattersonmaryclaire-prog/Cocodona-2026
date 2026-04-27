@@ -1,475 +1,134 @@
 import React, { useEffect, useMemo, useState } from "react";
 
-const STORAGE_KEY = "cocodona-crew-console-final-v5";
-const RACE_START_ISO = "2026-05-04T05:00:00-07:00";
+const STORAGE_KEY = "cocodona-crew-console-prod-v6";
 
 const styles = {
   page: {
     minHeight: "100vh",
-    background: "linear-gradient(180deg, #FFF8EF 0%, #F8EFE2 100%)",
-    padding: "12px",
+    background: "#fdf6ec",
+    padding: 12,
     fontFamily: "Inter, system-ui, -apple-system, sans-serif",
     color: "#3B2432",
     boxSizing: "border-box",
-    overflowX: "hidden",
   },
   wrap: {
     width: "100%",
-    maxWidth: "420px",
+    maxWidth: 430,
     margin: "0 auto",
     display: "grid",
-    gap: "12px",
-    paddingBottom: "32px",
-    boxSizing: "border-box",
+    gap: 12,
+    paddingBottom: 40,
   },
   card: {
-    width: "100%",
-    background: "#FFFDF9",
-    borderRadius: "24px",
-    padding: "16px",
-    boxShadow: "0 10px 24px rgba(59, 36, 50, 0.10)",
-    border: "1px solid #E8D7C2",
+    background: "#fff7ed",
+    borderRadius: 22,
+    padding: 14,
+    border: "1px solid #e5d3b3",
     boxSizing: "border-box",
-    overflowX: "hidden",
-  },
-  sectionTitle: {
-    fontSize: "18px",
-    fontWeight: 700,
-    margin: 0,
-    color: "#3B2432",
-  },
-  muted: {
-    color: "#8F7D63",
-    fontSize: "13px",
+    overflow: "hidden",
   },
   grid2: {
     display: "grid",
     gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
-    gap: "10px",
-    width: "100%",
-    alignItems: "start",
+    gap: 10,
   },
-  statBox: {
-    background: "#FFF8EF",
-    borderRadius: "18px",
-    padding: "12px",
-    border: "1px solid #E8D7C2",
-    minWidth: 0,
-    boxSizing: "border-box",
-    overflow: "hidden",
-  },
-  badge: {
-    display: "inline-flex",
-    alignItems: "center",
-    gap: "6px",
-    borderRadius: "999px",
-    padding: "6px 10px",
-    fontSize: "12px",
-    fontWeight: 700,
-    border: "1px solid #E7B7A9",
-    background: "#FDE2EA",
-    color: "#A7345D",
-    maxWidth: "100%",
-    boxSizing: "border-box",
-    whiteSpace: "nowrap",
-  },
-  bigButton: {
-    height: "88px",
-    width: "100%",
-    borderRadius: "22px",
-    border: "none",
-    fontSize: "22px",
+  button: {
+    minHeight: 50,
+    borderRadius: 16,
     fontWeight: 800,
+    border: "none",
     cursor: "pointer",
+    padding: "10px 12px",
     boxSizing: "border-box",
   },
-  tabRow: {
-    display: "grid",
-    gridTemplateColumns: "repeat(4, minmax(0, 1fr))",
-    gap: "8px",
-    width: "100%",
-  },
-  tab: (active) => ({
-    height: "44px",
-    borderRadius: "16px",
-    border: active ? "1px solid #EB4C78" : "1px solid #E8D7C2",
-    background: active ? "#EB4C78" : "#FFFDF9",
-    color: active ? "#FFF8EF" : "#3B2432",
-    fontWeight: 700,
-    cursor: "pointer",
-    minWidth: 0,
-    width: "100%",
-    boxSizing: "border-box",
-  }),
   input: {
     width: "100%",
-    maxWidth: "100%",
-    minWidth: 0,
-    height: "44px",
-    borderRadius: "16px",
-    border: "1px solid #D8C4AA",
-    padding: "0 12px",
-    fontSize: "14px",
+    height: 42,
+    borderRadius: 14,
+    border: "1px solid #e5d3b3",
+    padding: "0 10px",
     boxSizing: "border-box",
-    background: "#FFFDF9",
-    color: "#3B2432",
-    display: "block",
-    marginTop: "6px",
-    appearance: "none",
-    WebkitAppearance: "none",
+    background: "#fffdf9",
   },
-  textarea: {
-    width: "100%",
-    minHeight: "120px",
-    borderRadius: "16px",
-    border: "1px solid #D8C4AA",
-    padding: "12px",
-    fontSize: "13px",
-    boxSizing: "border-box",
-    resize: "vertical",
-    background: "#FFFDF9",
-    color: "#3B2432",
-  },
-  smallButton: (variant = "primary", disabled = false) => ({
-    height: "44px",
-    width: "100%",
-    borderRadius: "16px",
-    border: variant === "secondary" ? "1px solid #D8C4AA" : "none",
-    background: disabled
-      ? "#E9E2D8"
-      : variant === "secondary"
-        ? "#FFFDF9"
-        : variant === "danger"
-          ? "#D94C3D"
-          : "#EB4C78",
-    color: disabled ? "#A89A89" : variant === "secondary" ? "#3B2432" : "#FFF8EF",
-    fontWeight: 700,
-    cursor: disabled ? "not-allowed" : "pointer",
-    padding: "0 14px",
-    boxSizing: "border-box",
-    minWidth: 0,
+  small: { fontSize: 13, color: "#8F7D63" },
+  badge: (status) => ({
+    display: "inline-block",
+    padding: "6px 10px",
+    borderRadius: 999,
+    fontSize: 12,
+    fontWeight: 900,
+    background:
+      status === "MISSED"
+        ? "#fee2e2"
+        : status === "LEAVE NOW"
+          ? "#ef476f"
+          : status === "SOON"
+            ? "#ffd60a"
+            : "#dcfce7",
+    color:
+      status === "LEAVE NOW"
+        ? "#fff"
+        : status === "MISSED"
+          ? "#991b1b"
+          : "#3B2432",
   }),
-  progressWrap: {
-    width: "100%",
-    height: "8px",
-    background: "#EADCCB",
-    borderRadius: "999px",
-    overflow: "hidden",
-  },
-  progressBar: (value) => ({
-    width: `${value}%`,
-    height: "100%",
-    background: "linear-gradient(90deg, #F4DC00 0%, #F46A3A 50%, #EB4C78 100%)",
-  }),
-  noteBox: {
-    marginTop: "10px",
-    background: "#FFFDF9",
-    border: "1px solid #E8D7C2",
-    borderRadius: "14px",
-    padding: "10px",
-    color: "#3B2432",
-    fontSize: "13px",
-    lineHeight: 1.45,
-    whiteSpace: "pre-wrap",
-  },
 };
 
 const stations = [
-  {
-    name: "Start Line - Deep Canyon Ranch",
-    mile: 0.0,
-    planAIn: "2026-05-04T05:00:00-07:00",
-    planAOut: "2026-05-04T05:00:00-07:00",
-    planBIn: "2026-05-04T05:00:00-07:00",
-    planBOut: "2026-05-04T05:00:00-07:00",
-    pacer: "—",
-    shoes: "",
-    actions: "Controlled start",
-    critical: false,
-  },
-  {
-    name: "Cottonwood Creek",
-    mile: 7.4,
-    planAIn: "2026-05-04T07:30:00-07:00",
-    planAOut: "2026-05-04T07:35:00-07:00",
-    planBIn: "2026-05-04T07:50:00-07:00",
-    planBOut: "2026-05-04T07:55:00-07:00",
-    pacer: "—",
-    shoes: "",
-    actions: "Quick fluids and go",
-    critical: false,
-  },
-  {
-    name: "Lane Mtn by UltrAspire",
-    mile: 32.5,
-    planAIn: "2026-05-04T14:00:00-07:00",
-    planAOut: "2026-05-04T14:30:00-07:00",
-    planBIn: "2026-05-04T15:00:00-07:00",
-    planBOut: "2026-05-04T15:30:00-07:00",
-    pacer: "—",
-    shoes: "",
-    actions: "30 min cap",
-    critical: false,
-  },
-  {
-    name: "Crown King by Tailwind",
-    mile: 36.6,
-    planAIn: "2026-05-04T18:00:00-07:00",
-    planAOut: "2026-05-04T19:00:00-07:00",
-    planBIn: "2026-05-04T19:15:00-07:00",
-    planBOut: "2026-05-04T20:30:00-07:00",
-    pacer: "—",
-    shoes: "",
-    actions: "Food + feet + lights",
-    critical: false,
-  },
-  {
-    name: "Arrastra Creek",
-    mile: 51.0,
-    planAIn: "2026-05-04T23:00:00-07:00",
-    planAOut: "2026-05-05T00:00:00-07:00",
-    planBIn: "2026-05-05T00:30:00-07:00",
-    planBOut: "2026-05-05T01:30:00-07:00",
-    pacer: "—",
-    shoes: "",
-    actions: "1 hr max",
-    critical: false,
-  },
-  {
-    name: "Kamp Kipa",
-    mile: 60.8,
-    planAIn: "2026-05-05T04:00:00-07:00",
-    planAOut: "2026-05-05T05:00:00-07:00",
-    planBIn: "2026-05-05T05:00:00-07:00",
-    planBOut: "2026-05-05T06:00:00-07:00",
-    pacer: "—",
-    shoes: "",
-    actions: "1 hr max",
-    critical: false,
-  },
-  {
-    name: "Camp Wamatochick",
-    mile: 67.4,
-    planAIn: "2026-05-05T06:00:00-07:00",
-    planAOut: "2026-05-05T06:10:00-07:00",
-    planBIn: "2026-05-05T07:10:00-07:00",
-    planBOut: "2026-05-05T07:20:00-07:00",
-    pacer: "—",
-    shoes: "",
-    actions: "Fast turnover",
-    critical: false,
-  },
-  {
-    name: "Whiskey Row",
-    mile: 75.6,
-    planAIn: "2026-05-05T08:30:00-07:00",
-    planAOut: "2026-05-05T10:30:00-07:00",
-    planBIn: "2026-05-05T10:30:00-07:00",
-    planBOut: "2026-05-05T12:30:00-07:00",
-    pacer: "—",
-    shoes: "ROAD",
-    actions: "Full reset + shoes",
-    critical: true,
-  },
-  {
-    name: "Watson Lake",
-    mile: 82.8,
-    planAIn: "2026-05-05T13:00:00-07:00",
-    planAOut: "2026-05-05T13:10:00-07:00",
-    planBIn: "2026-05-05T15:00:00-07:00",
-    planBOut: "2026-05-05T15:10:00-07:00",
-    pacer: "Lin / Ben",
-    shoes: "",
-    actions: "Quick refill, pacer starts",
-    critical: false,
-  },
-  {
-    name: "Fain Ranch by Satisfy",
-    mile: 96.5,
-    planAIn: "2026-05-05T16:00:00-07:00",
-    planAOut: "2026-05-05T17:00:00-07:00",
-    planBIn: "2026-05-05T18:00:00-07:00",
-    planBOut: "2026-05-05T19:00:00-07:00",
-    pacer: "Lin",
-    shoes: "",
-    actions: "Fuel before Mingus",
-    critical: false,
-  },
-  {
-    name: "Mingus Mountain",
-    mile: 107.2,
-    planAIn: "2026-05-05T21:00:00-07:00",
-    planAOut: "2026-05-05T22:00:00-07:00",
-    planBIn: "2026-05-05T23:30:00-07:00",
-    planBOut: "2026-05-06T01:30:00-07:00",
-    pacer: "Ben",
-    shoes: "",
-    actions: "Sleep + cold gear",
-    critical: true,
-  },
-  {
-    name: "Jerome",
-    mile: 124.2,
-    planAIn: "2026-05-06T07:00:00-07:00",
-    planAOut: "2026-05-06T09:00:00-07:00",
-    planBIn: "2026-05-06T09:30:00-07:00",
-    planBOut: "2026-05-06T11:30:00-07:00",
-    pacer: "Ben",
-    shoes: "ROAD",
-    actions: "Reset + shoes",
-    critical: true,
-  },
-  {
-    name: "Dead Horse",
-    mile: 132.9,
-    planAIn: "2026-05-06T12:00:00-07:00",
-    planAOut: "2026-05-06T12:15:00-07:00",
-    planBIn: "2026-05-06T14:30:00-07:00",
-    planBOut: "2026-05-06T14:45:00-07:00",
-    pacer: "Lin",
-    shoes: "TRAIL",
-    actions: "Switch for Sedona section",
-    critical: false,
-  },
-  {
-    name: "Deer Pass",
-    mile: 146.9,
-    planAIn: "2026-05-06T16:00:00-07:00",
-    planAOut: "2026-05-06T17:00:00-07:00",
-    planBIn: "2026-05-06T18:30:00-07:00",
-    planBOut: "2026-05-06T19:30:00-07:00",
-    pacer: "Ben",
-    shoes: "",
-    actions: "1 hr cap",
-    critical: false,
-  },
-  {
-    name: "Sedona Posse Grounds",
-    mile: 159.1,
-    planAIn: "2026-05-06T22:30:00-07:00",
-    planAOut: "2026-05-07T00:30:00-07:00",
-    planBIn: "2026-05-07T01:30:00-07:00",
-    planBOut: "2026-05-07T04:00:00-07:00",
-    pacer: "Ben",
-    shoes: "",
-    actions: "Critical sleep/reset",
-    critical: true,
-  },
-  {
-    name: "Schnebly Hill",
-    mile: 176.1,
-    planAIn: "2026-05-07T07:00:00-07:00",
-    planAOut: "2026-05-07T08:00:00-07:00",
-    planBIn: "2026-05-07T10:00:00-07:00",
-    planBOut: "2026-05-07T11:00:00-07:00",
-    pacer: "Joe",
-    shoes: "ROAD",
-    actions: "Recover climb + shoes",
-    critical: false,
-  },
-  {
-    name: "Munds Park",
-    mile: 190.0,
-    planAIn: "2026-05-07T12:00:00-07:00",
-    planAOut: "2026-05-07T13:00:00-07:00",
-    planBIn: "2026-05-07T15:30:00-07:00",
-    planBOut: "2026-05-07T16:30:00-07:00",
-    pacer: "—",
-    shoes: "",
-    actions: "Mental low zone",
-    critical: false,
-  },
-  {
-    name: "Kelly Canyon",
-    mile: 202.7,
-    planAIn: "2026-05-07T16:00:00-07:00",
-    planAOut: "2026-05-07T16:10:00-07:00",
-    planBIn: "2026-05-07T20:00:00-07:00",
-    planBOut: "2026-05-07T20:10:00-07:00",
-    pacer: "Ben",
-    shoes: "",
-    actions: "Fast turnover",
-    critical: false,
-  },
-  {
-    name: "Fort Tuthill",
-    mile: 211.0,
-    planAIn: "2026-05-07T20:30:00-07:00",
-    planAOut: "2026-05-07T22:30:00-07:00",
-    planBIn: "2026-05-08T01:00:00-07:00",
-    planBOut: "2026-05-08T03:00:00-07:00",
-    pacer: "Ben",
-    shoes: "TRAIL",
-    actions: "Final reset + shoes",
-    critical: true,
-  },
-  {
-    name: "Walnut Canyon",
-    mile: 227.1,
-    planAIn: "2026-05-08T02:30:00-07:00",
-    planAOut: "2026-05-08T03:30:00-07:00",
-    planBIn: "2026-05-08T07:30:00-07:00",
-    planBOut: "2026-05-08T08:30:00-07:00",
-    pacer: "Lin",
-    shoes: "",
-    actions: "Efficient stop",
-    critical: false,
-  },
-  {
-    name: "Wildcat Hill",
-    mile: 234.1,
-    planAIn: "2026-05-08T06:30:00-07:00",
-    planAOut: "2026-05-08T07:00:00-07:00",
-    planBIn: "2026-05-08T11:00:00-07:00",
-    planBOut: "2026-05-08T11:30:00-07:00",
-    pacer: "Joe C",
-    shoes: "ROAD",
-    actions: "Fuel + go",
-    critical: false,
-  },
-  {
-    name: "Trinity Heights",
-    mile: 249.4,
-    planAIn: "2026-05-08T12:45:00-07:00",
-    planAOut: "2026-05-08T12:50:00-07:00",
-    planBIn: "2026-05-08T14:30:00-07:00",
-    planBOut: "2026-05-08T14:35:00-07:00",
-    pacer: "—",
-    shoes: "",
-    actions: "Short touchpoint",
-    critical: false,
-  },
-  {
-    name: "Finish Line - Heritage Square",
-    mile: 253.3,
-    planAIn: "2026-05-08T02:00:00-07:00",
-    planAOut: "",
-    planBIn: "2026-05-08T15:00:00-07:00",
-    planBOut: "",
-    pacer: "—",
-    shoes: "",
-    actions: "Empty the tank",
-    critical: false,
-  },
+  { name: "Cottonwood Creek", mile: 7.4, plannedIn: "2026-05-04T07:30:00" },
+  { name: "Lane Mountain", mile: 32.5, plannedIn: "2026-05-04T14:00:00" },
+  { name: "Crown King", mile: 36.6, plannedIn: "2026-05-04T18:00:00" },
+  { name: "Arrastra Creek", mile: 51.1, plannedIn: "2026-05-04T23:00:00" },
+  { name: "Kamp Kipa", mile: 60.9, plannedIn: "2026-05-05T04:00:00" },
+  { name: "Whiskey Row", mile: 75.7, plannedIn: "2026-05-05T08:30:00" },
+  { name: "Watson Lake", mile: 82.8, plannedIn: "2026-05-05T13:00:00" },
+  { name: "Fain Ranch", mile: 94.5, plannedIn: "2026-05-05T16:00:00" },
+  { name: "Mingus Mountain", mile: 106.8, plannedIn: "2026-05-05T21:00:00" },
+  { name: "Jerome", mile: 123.8, plannedIn: "2026-05-06T07:00:00" },
+  { name: "Dead Horse", mile: 132.5, plannedIn: "2026-05-06T12:00:00" },
+  { name: "Deer Pass", mile: 146.5, plannedIn: "2026-05-06T16:00:00" },
+  { name: "Sedona Posse Grounds", mile: 158.8, plannedIn: "2026-05-06T22:30:00" },
+  { name: "Schnebly Hill", mile: 175.7, plannedIn: "2026-05-07T07:00:00" },
+  { name: "Munds Park", mile: 189.6, plannedIn: "2026-05-07T12:00:00" },
+  { name: "Kelly Canyon", mile: 202.3, plannedIn: "2026-05-07T16:00:00" },
+  { name: "Fort Tuthill", mile: 210.6, plannedIn: "2026-05-07T20:30:00" },
+  { name: "Walnut Canyon", mile: 226.8, plannedIn: "2026-05-08T02:30:00" },
+  { name: "Wildcat Hill", mile: 233.7, plannedIn: "2026-05-08T06:30:00" },
+  { name: "Trinity Heights", mile: 249.0, plannedIn: "2026-05-08T13:00:00" },
+  { name: "Finish", mile: 252.9, plannedIn: "2026-05-08T14:00:00" },
 ];
 
+const defaultDriveData = {
+  "Cottonwood Creek": { hotel: "Hotel St. Michael", optional: "Grand Highland Hotel / Hassayampa Inn", distance: 58, drive: 75 },
+  "Lane Mountain": { hotel: "Hotel St. Michael", optional: "Grand Highland Hotel / Hassayampa Inn", distance: 49, drive: 70 },
+  "Crown King": { hotel: "Hotel St. Michael", optional: "Grand Highland Hotel / Hassayampa Inn", distance: 48, drive: 85 },
+  "Arrastra Creek": { hotel: "Hotel St. Michael", optional: "Grand Highland Hotel / Hassayampa Inn", distance: 28, drive: 60 },
+  "Kamp Kipa": { hotel: "Hotel St. Michael", optional: "Grand Highland Hotel / Hassayampa Inn", distance: 18, drive: 40 },
+  "Whiskey Row": { hotel: "Hotel St. Michael", optional: "Grand Highland Hotel / Hassayampa Inn", distance: 0.2, drive: 5 },
+  "Watson Lake": { hotel: "Hotel St. Michael", optional: "Grand Highland Hotel / Hassayampa Inn", distance: 5, drive: 15 },
+  "Fain Ranch": { hotel: "Hotel St. Michael", optional: "Grand Highland Hotel / Hassayampa Inn", distance: 16, drive: 30 },
+  "Mingus Mountain": { hotel: "The Grand Hotel", optional: "Connor Hotel / Surgeons House B&B", distance: 21, drive: 45 },
+  Jerome: { hotel: "The Grand Hotel", optional: "Connor Hotel / Surgeons House B&B", distance: 0.2, drive: 5 },
+  "Dead Horse": { hotel: "Sky Rock Sedona", optional: "Arabella Sedona / Poco Diablo Resort", distance: 20, drive: 35 },
+  "Deer Pass": { hotel: "Sky Rock Sedona", optional: "Arabella Sedona / Poco Diablo Resort", distance: 26, drive: 45 },
+  "Sedona Posse Grounds": { hotel: "Sky Rock Sedona", optional: "Arabella Sedona / Poco Diablo Resort", distance: 2, drive: 8 },
+  "Schnebly Hill": { hotel: "Sky Rock Sedona", optional: "Arabella Sedona / Poco Diablo Resort", distance: 7, drive: 20 },
+  "Munds Park": { hotel: "Little America Hotel", optional: "Drury Inn Flagstaff / Residence Inn Flagstaff", distance: 22, drive: 30 },
+  "Kelly Canyon": { hotel: "Little America Hotel", optional: "Drury Inn Flagstaff / Residence Inn Flagstaff", distance: 14, drive: 25 },
+  "Fort Tuthill": { hotel: "Little America Hotel", optional: "Drury Inn Flagstaff / Residence Inn Flagstaff", distance: 7, drive: 15 },
+  "Walnut Canyon": { hotel: "Little America Hotel", optional: "Drury Inn Flagstaff / Residence Inn Flagstaff", distance: 10, drive: 25 },
+  "Wildcat Hill": { hotel: "Little America Hotel", optional: "Drury Inn Flagstaff / Residence Inn Flagstaff", distance: 9, drive: 20 },
+  "Trinity Heights": { hotel: "Little America Hotel", optional: "Drury Inn Flagstaff / Residence Inn Flagstaff", distance: 4, drive: 12 },
+  Finish: { hotel: "Little America Hotel", optional: "Drury Inn Flagstaff / Residence Inn Flagstaff", distance: 3, drive: 10 },
+};
+
 function emptyRecords() {
-  return stations.map(() => ({
-    actualIn: "",
-    actualOut: "",
-    note: "",
-  }));
+  return stations.map(() => ({ in: "", out: "", note: "", open: false }));
 }
 
-function formatMile(mile) {
-  if (mile === null || mile === undefined || mile === "") return "—";
-  return Number.isInteger(mile) ? String(mile) : mile.toFixed(1);
-}
-
-function formatDateTime(value) {
+function fmt(value) {
   if (!value) return "—";
-  const d = new Date(value);
-  return d.toLocaleString([], {
+  return new Date(value).toLocaleString([], {
     month: "short",
     day: "numeric",
     hour: "numeric",
@@ -477,846 +136,266 @@ function formatDateTime(value) {
   });
 }
 
-function formatTimeOnly(value) {
+function time(value) {
   if (!value) return "—";
-  const d = new Date(value);
-  return d.toLocaleTimeString([], {
+  return new Date(value).toLocaleTimeString([], {
     hour: "numeric",
     minute: "2-digit",
   });
 }
 
-function toDateTimeLocalValue(value) {
-  if (!value) return "";
-  const d = new Date(value);
-  if (Number.isNaN(d.getTime())) return "";
-  const pad = (n) => String(n).padStart(2, "0");
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+function mapsLink(station, hotel) {
+  return `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(
+    hotel || ""
+  )}&destination=${encodeURIComponent(station.name + " Cocodona")}`;
 }
 
-function fromDateTimeLocalValue(value) {
-  if (!value) return "";
-  const d = new Date(value);
-  if (Number.isNaN(d.getTime())) return "";
-  return d.toISOString();
-}
+function getCrew(station, driveData) {
+  const d = driveData[station.name] || {};
+  const eta = new Date(station.plannedIn);
+  const arrive = new Date(eta.getTime() - 60 * 60000);
+  const drive = Number(d.drive || 30);
+  const leave = new Date(arrive.getTime() - drive * 60000);
+  const now = new Date();
 
-function formatDuration(ms) {
-  if (ms === null || ms === undefined || Number.isNaN(ms)) return "—";
-  const sign = ms < 0 ? "-" : "";
-  const abs = Math.abs(ms);
-  const totalMinutes = Math.round(abs / 60000);
-  const hours = Math.floor(totalMinutes / 60);
-  const minutes = totalMinutes % 60;
-  return `${sign}${hours}h ${minutes}m`;
-}
+  let status = "OK";
+  if (now > arrive) status = "MISSED";
+  else if (now >= leave) status = "LEAVE NOW";
+  else if (leave - now <= 30 * 60000) status = "SOON";
 
-function formatHoursDecimal(hours) {
-  if (hours === null || hours === undefined || Number.isNaN(hours)) return "—";
-  return `${hours.toFixed(1)} h`;
-}
-
-function statusFromDelta(ms) {
-  if (ms === null || ms === undefined || Number.isNaN(ms)) {
-    return { label: "Pending", bg: "#E9E2D8", color: "#6B5B4D" };
-  }
-  if (ms > 60 * 60000) {
-    return { label: "Major loss", bg: "#FDE2EA", color: "#A7345D" };
-  }
-  if (ms > 30 * 60000) {
-    return { label: "Cut next stop", bg: "#FFF1D6", color: "#A85A1F" };
-  }
-  if (ms < -20 * 60000) {
-    return { label: "Ahead — control", bg: "#F6E7D8", color: "#8F5E3B" };
-  }
-  return { label: "On plan", bg: "#F8E7B5", color: "#6E5A00" };
-}
-
-function nextActionFromDelta(ms) {
-  if (ms === null || ms === undefined || Number.isNaN(ms)) {
-    return "Run the planned stop.";
-  }
-  if (ms > 60 * 60000) {
-    return "Cut all non-critical sleep and strip extras.";
-  }
-  if (ms > 30 * 60000) {
-    return "Shorten next stop by 25–50%.";
-  }
-  if (ms < -20 * 60000) {
-    return "Stay controlled. Do not burn the buffer.";
-  }
-  return "Stay the course.";
-}
-
-function buildExportPayload(planMode, records, panicMode, crewForecastOpen) {
-  return JSON.stringify(
-    {
-      version: 1,
-      exportedAt: new Date().toISOString(),
-      planMode,
-      panicMode,
-      crewForecastOpen,
-      records,
-    },
-    null,
-    2
-  );
-}
-
-function getCurrentStoredState() {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    return raw ? JSON.parse(raw) : null;
-  } catch {
-    return null;
-  }
+  return { ...d, drive, arrive, leave, status };
 }
 
 export default function App() {
-  const [planMode, setPlanMode] = useState("A");
-  const [panicMode, setPanicMode] = useState(false);
   const [records, setRecords] = useState(emptyRecords);
-  const [undoStack, setUndoStack] = useState([]);
+  const [driveData, setDriveData] = useState(defaultDriveData);
   const [tab, setTab] = useState("active");
-  const [exportText, setExportText] = useState("");
-  const [importText, setImportText] = useState("");
-  const [savedAt, setSavedAt] = useState("");
-  const [crewForecastOpen, setCrewForecastOpen] = useState(false);
-  const [openStationNotes, setOpenStationNotes] = useState({});
 
   useEffect(() => {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (!saved) return;
     try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (!raw) return;
-      const parsed = JSON.parse(raw);
-      if (parsed?.records) setRecords(parsed.records);
-      if (parsed?.planMode) setPlanMode(parsed.planMode);
-      if (typeof parsed?.panicMode === "boolean") setPanicMode(parsed.panicMode);
-      if (typeof parsed?.crewForecastOpen === "boolean") setCrewForecastOpen(parsed.crewForecastOpen);
-      if (parsed?.savedAt) setSavedAt(parsed.savedAt);
-    } catch (e) {
-      console.error(e);
-    }
+      const parsed = JSON.parse(saved);
+      if (parsed.records) setRecords(parsed.records);
+      if (parsed.driveData) setDriveData(parsed.driveData);
+      if (parsed.tab) setTab(parsed.tab);
+    } catch {}
   }, []);
 
   useEffect(() => {
-    try {
-      const payload = {
-        planMode,
-        panicMode,
-        crewForecastOpen,
-        records,
-        savedAt: new Date().toISOString(),
-      };
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
-      setSavedAt(payload.savedAt);
-    } catch (e) {
-      console.error(e);
-    }
-  }, [planMode, panicMode, crewForecastOpen, records]);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ records, driveData, tab }));
+  }, [records, driveData, tab]);
 
-  const data = useMemo(() => {
-    return stations.map((station, idx) => {
-      const plannedIn = planMode === "A" ? station.planAIn : station.planBIn;
-      const plannedOut = planMode === "A" ? station.planAOut : station.planBOut;
-      const prevPlannedOut =
-        idx > 0
-          ? planMode === "A"
-            ? stations[idx - 1].planAOut
-            : stations[idx - 1].planBOut
-          : plannedOut;
-      const prevActualOut =
-        idx > 0 ? records[idx - 1].actualOut : records[0].actualOut || records[0].actualIn;
+  const currentIndexRaw = records.findIndex((r) => !r.out);
+  const currentIndex = currentIndexRaw === -1 ? stations.length - 1 : currentIndexRaw;
+  const current = stations[currentIndex];
+  const crew = getCrew(current, driveData);
 
-      const plannedSplitMs =
-        idx === 0 || !plannedIn || !prevPlannedOut
-          ? null
-          : new Date(plannedIn) - new Date(prevPlannedOut);
+  const nextLeaveNow = useMemo(() => {
+    return stations
+      .map((s, i) => ({ station: s, crew: getCrew(s, driveData), i }))
+      .find((x) => x.crew.status === "LEAVE NOW" || x.crew.status === "SOON");
+  }, [driveData]);
 
-      const actualSplitMs =
-        idx === 0 || !records[idx].actualIn || !prevActualOut
-          ? null
-          : new Date(records[idx].actualIn) - new Date(prevActualOut);
-
-      const deltaMs =
-        actualSplitMs !== null && plannedSplitMs !== null
-          ? actualSplitMs - plannedSplitMs
-          : null;
-
-      const stopMs =
-        records[idx].actualIn && records[idx].actualOut
-          ? new Date(records[idx].actualOut) - new Date(records[idx].actualIn)
-          : null;
-
-      return {
-        ...station,
-        plannedIn,
-        plannedOut,
-        ...records[idx],
-        plannedSplitMs,
-        actualSplitMs,
-        deltaMs,
-        stopMs,
-      };
-    });
-  }, [planMode, records]);
-
-  const completedCount = data.filter((d) => d.actualIn || d.actualOut).length;
-  const progress = Math.round((completedCount / data.length) * 100);
-
-  const activeIndex = data.findIndex((d) => !d.actualOut);
-  const currentIndex = activeIndex === -1 ? data.length - 1 : activeIndex;
-  const current = data[currentIndex];
-  const nextCritical = data.find((d, i) => i >= currentIndex && d.critical && !d.actualOut);
-  const overallDelta = data.reduce((acc, d) => (d.deltaMs !== null ? acc + d.deltaMs : acc), 0);
-  const biggestLoss = data.reduce(
-    (max, d) => (d.deltaMs !== null && d.deltaMs > max ? d.deltaMs : max),
-    0
-  );
-
-  const lastActualPoint = useMemo(() => {
-    let latest = null;
-    data.forEach((station) => {
-      const timestamp = station.actualOut || station.actualIn || "";
-      if (!timestamp) return;
-      if (!latest || new Date(timestamp) > new Date(latest.timestamp)) {
-        latest = {
-          name: station.name,
-          mile: station.mile,
-          timestamp,
-        };
-      }
-    });
-    return latest;
-  }, [data]);
-
-  const forecast = useMemo(() => {
-    const finishMile = stations[stations.length - 1].mile;
-    const raceStart = new Date(RACE_START_ISO);
-    const planAFinish = new Date(stations[stations.length - 1].planAIn);
-    const planBFinish = new Date(stations[stations.length - 1].planBIn);
-
-    if (!lastActualPoint || !lastActualPoint.timestamp || !lastActualPoint.mile) {
-      return {
-        predictedFinishIso: "",
-        predictedFinishHours: null,
-        trendVsPlanA: null,
-        trendVsPlanB: null,
-        basedOnStation: "Need at least one actual checkpoint.",
-        basedOnElapsedMs: null,
-      };
-    }
-
-    const currentTime = new Date(lastActualPoint.timestamp);
-    const elapsedMs = currentTime - raceStart;
-    const elapsedHours = elapsedMs / 3600000;
-    const paceHoursPerMile = elapsedHours / lastActualPoint.mile;
-    const predictedFinishHours = paceHoursPerMile * finishMile;
-    const predictedFinishIso = new Date(
-      raceStart.getTime() + predictedFinishHours * 3600000
-    ).toISOString();
-
-    return {
-      predictedFinishIso,
-      predictedFinishHours,
-      trendVsPlanA: new Date(predictedFinishIso) - planAFinish,
-      trendVsPlanB: new Date(predictedFinishIso) - planBFinish,
-      basedOnStation: lastActualPoint.name,
-      basedOnElapsedMs: elapsedMs,
-    };
-  }, [lastActualPoint]);
-
-  function pushUndoSnapshot(currentRecords = records) {
-    setUndoStack((prev) => [JSON.stringify(currentRecords), ...prev].slice(0, 20));
-  }
-
-  function stamp(index, field) {
-    pushUndoSnapshot(records);
+  function stamp(i, field) {
     const now = new Date().toISOString();
-    setRecords((prev) => prev.map((r, i) => (i === index ? { ...r, [field]: now } : r)));
+    setRecords((prev) => prev.map((r, idx) => (idx === i ? { ...r, [field]: now } : r)));
   }
 
-  function setField(index, field, value) {
-    pushUndoSnapshot(records);
-    setRecords((prev) => prev.map((r, i) => (i === index ? { ...r, [field]: value } : r)));
+  function updateNote(i, note) {
+    setRecords((prev) => prev.map((r, idx) => (idx === i ? { ...r, note } : r)));
   }
 
-  function clearStation(index) {
-    pushUndoSnapshot(records);
-    setRecords((prev) =>
-      prev.map((r, i) => (i === index ? { actualIn: "", actualOut: "", note: "" } : r))
-    );
+  function toggleNote(i) {
+    setRecords((prev) => prev.map((r, idx) => (idx === i ? { ...r, open: !r.open } : r)));
   }
 
-  function setNote(index, value) {
-    setRecords((prev) => prev.map((r, i) => (i === index ? { ...r, note: value } : r)));
-  }
-
-  function undoLastAction() {
-    setUndoStack((prev) => {
-      if (!prev.length) return prev;
-      const [latest, ...rest] = prev;
-      try {
-        setRecords(JSON.parse(latest));
-      } catch (e) {
-        console.error(e);
-      }
-      return rest;
-    });
-  }
-
-  function exportData() {
-    setExportText(buildExportPayload(planMode, records, panicMode, crewForecastOpen));
-  }
-
-  async function copyExport() {
-    const payload = buildExportPayload(planMode, records, panicMode, crewForecastOpen);
-    setExportText(payload);
-    try {
-      await navigator.clipboard.writeText(payload);
-    } catch (e) {
-      console.error(e);
-    }
-  }
-
-  function importData() {
-    try {
-      const parsed = JSON.parse(importText);
-      if (parsed?.records?.length === stations.length) setRecords(parsed.records);
-      if (parsed?.planMode) setPlanMode(parsed.planMode);
-      if (typeof parsed?.panicMode === "boolean") setPanicMode(parsed.panicMode);
-      if (typeof parsed?.crewForecastOpen === "boolean") setCrewForecastOpen(parsed.crewForecastOpen);
-    } catch {
-      alert("Import failed. Make sure you pasted the full backup JSON.");
-    }
+  function updateDrive(stationName, drive) {
+    setDriveData((prev) => ({
+      ...prev,
+      [stationName]: { ...prev[stationName], drive: Number(drive || 0) },
+    }));
   }
 
   function resetAll() {
-    pushUndoSnapshot(records);
+    if (!confirm("Reset all race data on this device?")) return;
     setRecords(emptyRecords());
-    setExportText("");
-    setImportText("");
-    setPanicMode(false);
-    setPlanMode("A");
-    setCrewForecastOpen(false);
+    setDriveData(defaultDriveData);
     localStorage.removeItem(STORAGE_KEY);
   }
 
-  function reloadFromSavedState() {
-    const parsed = getCurrentStoredState();
-    if (!parsed) {
-      alert("No saved local state found on this device.");
-      return;
-    }
-    if (parsed?.records) setRecords(parsed.records);
-    if (parsed?.planMode) setPlanMode(parsed.planMode);
-    if (typeof parsed?.panicMode === "boolean") setPanicMode(parsed.panicMode);
-    if (typeof parsed?.crewForecastOpen === "boolean") setCrewForecastOpen(parsed.crewForecastOpen);
-    if (parsed?.savedAt) setSavedAt(parsed.savedAt);
+  function exportBackup() {
+    const payload = JSON.stringify({ records, driveData, tab }, null, 2);
+    navigator.clipboard?.writeText(payload);
+    alert("Backup copied to clipboard.");
   }
-
-  function hardReloadApp() {
-    window.location.reload();
-  }
-
-  function toggleStationNote(idx) {
-    setOpenStationNotes((prev) => ({ ...prev, [idx]: !prev[idx] }));
-  }
-
-  const status = current ? statusFromDelta(current.deltaMs) : statusFromDelta(null);
 
   return (
     <div style={styles.page}>
       <div style={styles.wrap}>
-        <div style={styles.card}>
+        {nextLeaveNow && (
           <div
             style={{
-              display: "flex",
-              justifyContent: "space-between",
-              gap: "12px",
-              alignItems: "flex-start",
+              ...styles.card,
+              background: nextLeaveNow.crew.status === "LEAVE NOW" ? "#ef476f" : "#ffd60a",
+              color: nextLeaveNow.crew.status === "LEAVE NOW" ? "#fff" : "#3B2432",
+              fontWeight: 900,
             }}
           >
-            <div style={{ minWidth: 0 }}>
-              <h1 style={{ margin: 0, fontSize: "24px", fontWeight: 800 }}>
-                Cocodona Crew Console
-              </h1>
-              <div style={styles.muted}>Single-file race-day mobile app</div>
-            </div>
-            <div style={styles.badge}>Plan {planMode}</div>
-          </div>
-
-          <div style={{ ...styles.grid2, marginTop: "12px" }}>
-            <div style={styles.statBox}>
-              <div style={styles.muted}>Overall delta</div>
-              <div style={{ fontSize: "20px", fontWeight: 800 }}>
-                {formatDuration(overallDelta)}
-              </div>
-            </div>
-            <div style={styles.statBox}>
-              <div style={styles.muted}>Next critical</div>
-              <div style={{ fontSize: "15px", fontWeight: 800, lineHeight: 1.2 }}>
-                {nextCritical?.name || "Done"}
-              </div>
+            {nextLeaveNow.crew.status}: {nextLeaveNow.station.name}
+            <div style={{ fontSize: 13, marginTop: 4 }}>
+              Leave {time(nextLeaveNow.crew.leave)} · Arrive {time(nextLeaveNow.crew.arrive)}
             </div>
           </div>
+        )}
 
-          <div style={{ ...styles.statBox, marginTop: "10px" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "8px" }}>
-              <span style={styles.muted}>Progress</span>
-              <span style={{ fontWeight: 700 }}>{progress}%</span>
-            </div>
-            <div style={styles.progressWrap}>
-              <div style={styles.progressBar(progress)} />
-            </div>
-          </div>
+        <div style={styles.card}>
+          <h2 style={{ margin: 0 }}>{current.name}</h2>
+          <div style={styles.small}>Mile {current.mile} · ETA {fmt(current.plannedIn)}</div>
 
-          <div style={{ ...styles.statBox, marginTop: "10px", background: "#FFF1D6" }}>
-            <div style={{ fontWeight: 700 }}>Auto-saved locally</div>
-            <div style={{ ...styles.muted, marginTop: "4px" }}>
-              Last saved: {savedAt ? formatDateTime(savedAt) : "—"}
-            </div>
-          </div>
-
-          <div style={{ ...styles.grid2, marginTop: "10px" }}>
+          <div style={{ ...styles.grid2, marginTop: 12 }}>
             <button
-              style={styles.smallButton(planMode === "A" ? "primary" : "secondary")}
-              onClick={() => setPlanMode("A")}
+              style={{ ...styles.button, background: "#ef476f", color: "#fff" }}
+              onClick={() => stamp(currentIndex, "in")}
             >
-              Plan A
+              TAP IN
             </button>
             <button
-              style={styles.smallButton(planMode === "B" ? "primary" : "secondary")}
-              onClick={() => setPlanMode("B")}
+              style={{ ...styles.button, background: "#ffd60a", color: "#3B2432" }}
+              onClick={() => stamp(currentIndex, "out")}
             >
-              Plan B
+              TAP OUT
             </button>
           </div>
 
-          <div style={{ ...styles.grid2, marginTop: "10px" }}>
-            <button
-              style={styles.smallButton(panicMode ? "danger" : "secondary")}
-              onClick={() => setPanicMode((v) => !v)}
-            >
-              {panicMode ? "Panic ON" : "Panic OFF"}
-            </button>
-            <button style={styles.smallButton("secondary")} onClick={exportData}>
-              Export Backup
-            </button>
+          <div style={{ ...styles.grid2, marginTop: 12, fontSize: 13 }}>
+            <div><strong>Actual In</strong><br />{fmt(records[currentIndex]?.in)}</div>
+            <div><strong>Actual Out</strong><br />{fmt(records[currentIndex]?.out)}</div>
+            <div><strong>Hotel</strong><br />{crew.hotel}</div>
+            <div><strong>Optional</strong><br />{crew.optional}</div>
+            <div><strong>Distance</strong><br />{crew.distance} mi</div>
+            <div><strong>Drive</strong><br />{crew.drive} min</div>
+            <div><strong>Crew Arrive</strong><br />{time(crew.arrive)}</div>
+            <div><strong>Crew Leave</strong><br />{time(crew.leave)}</div>
           </div>
 
-          <div style={{ display: "grid", gap: "10px", marginTop: "10px" }}>
-            <button style={styles.smallButton("secondary")} onClick={reloadFromSavedState}>
-              Reload saved state
-            </button>
-            <button style={styles.smallButton("secondary")} onClick={hardReloadApp}>
-              Refresh app
-            </button>
-            <button
-              style={styles.smallButton("secondary", undoStack.length === 0)}
-              onClick={undoLastAction}
-              disabled={undoStack.length === 0}
-            >
-              Undo last action
-            </button>
+          <div style={{ marginTop: 12 }}>
+            <span style={styles.badge(crew.status)}>{crew.status}</span>
           </div>
+
+          <a
+            href={mapsLink(current, crew.hotel)}
+            target="_blank"
+            rel="noreferrer"
+            style={{ display: "block", marginTop: 12 }}
+          >
+            Open route in Maps
+          </a>
+
+          <input
+            style={{ ...styles.input, marginTop: 12 }}
+            placeholder="Crew notes"
+            value={records[currentIndex]?.note || ""}
+            onChange={(e) => updateNote(currentIndex, e.target.value)}
+          />
         </div>
 
-        <div style={styles.tabRow}>
-          {["active", "stations", "crew", "backup"].map((t) => (
-            <button key={t} style={styles.tab(tab === t)} onClick={() => setTab(t)}>
-              {t[0].toUpperCase() + t.slice(1)}
+        <div style={styles.grid2}>
+          {["active", "stations", "drive", "backup"].map((t) => (
+            <button
+              key={t}
+              style={{
+                ...styles.button,
+                height: 44,
+                background: tab === t ? "#ef476f" : "#fff7ed",
+                color: tab === t ? "#fff" : "#3B2432",
+                border: "1px solid #e5d3b3",
+                fontSize: 14,
+              }}
+              onClick={() => setTab(t)}
+            >
+              {t.toUpperCase()}
             </button>
           ))}
         </div>
 
-        {tab === "active" && current && (
-          <div style={styles.card}>
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "flex-start",
-                gap: "10px",
-              }}
-            >
-              <div style={{ minWidth: 0 }}>
-                <div style={{ fontSize: "22px", fontWeight: 800, lineHeight: 1.15 }}>
-                  {current.name}
-                </div>
-                <div style={{ ...styles.muted, marginTop: "4px" }}>
-                  Mile {formatMile(current.mile)}
-                </div>
-              </div>
-              <div
-                style={{
-                  ...styles.badge,
-                  background: panicMode ? "#FDE2EA" : status.bg,
-                  color: panicMode ? "#A7345D" : status.color,
-                  borderColor: "transparent",
-                }}
-              >
-                {panicMode ? "Save time now" : status.label}
-              </div>
-            </div>
-
-            <div style={{ ...styles.grid2, marginTop: "12px" }}>
-              <div style={styles.statBox}>
-                <div style={styles.muted}>Planned in</div>
-                <div style={{ fontWeight: 800 }}>{formatDateTime(current.plannedIn)}</div>
-              </div>
-              <div style={styles.statBox}>
-                <div style={styles.muted}>Leave by</div>
-                <div style={{ fontWeight: 800 }}>{formatDateTime(current.plannedOut)}</div>
-              </div>
-              <div style={styles.statBox}>
-                <div style={styles.muted}>Pacer</div>
-                <div style={{ fontWeight: 800 }}>{current.pacer}</div>
-              </div>
-              <div style={styles.statBox}>
-                <div style={styles.muted}>Shoes</div>
-                <div style={{ fontWeight: 800 }}>{current.shoes || "—"}</div>
-              </div>
-            </div>
-
-            <div style={{ ...styles.grid2, marginTop: "12px" }}>
-              <button
-                style={{ ...styles.bigButton, background: "#EB4C78", color: "#FFF8EF" }}
-                onClick={() => stamp(currentIndex, "actualIn")}
-              >
-                TAP IN
-              </button>
-              <button
-                style={{ ...styles.bigButton, background: "#F4DC00", color: "#3B2432" }}
-                onClick={() => stamp(currentIndex, "actualOut")}
-              >
-                TAP OUT
-              </button>
-            </div>
-
-            <div style={{ ...styles.grid2, marginTop: "12px" }}>
-              <div style={styles.statBox}>
-                <div style={styles.muted}>Actual in</div>
-                <div style={{ width: "100%", minWidth: 0, overflow: "hidden" }}>
-                  <input
-                    type="datetime-local"
-                    style={styles.input}
-                    value={toDateTimeLocalValue(current.actualIn)}
-                    onChange={(e) =>
-                      setField(currentIndex, "actualIn", fromDateTimeLocalValue(e.target.value))
-                    }
-                  />
-                </div>
-              </div>
-
-              <div style={styles.statBox}>
-                <div style={styles.muted}>Actual out</div>
-                <div style={{ width: "100%", minWidth: 0, overflow: "hidden" }}>
-                  <input
-                    type="datetime-local"
-                    style={styles.input}
-                    value={toDateTimeLocalValue(current.actualOut)}
-                    onChange={(e) =>
-                      setField(currentIndex, "actualOut", fromDateTimeLocalValue(e.target.value))
-                    }
-                  />
-                </div>
-              </div>
-
-              <div style={styles.statBox}>
-                <div style={styles.muted}>Segment delta</div>
-                <div style={{ fontWeight: 800 }}>{formatDuration(current.deltaMs)}</div>
-              </div>
-
-              <div style={styles.statBox}>
-                <div style={styles.muted}>Stop time</div>
-                <div style={{ fontWeight: 800 }}>{formatDuration(current.stopMs)}</div>
-              </div>
-            </div>
-
-            <div
-              style={{
-                ...styles.card,
-                padding: "14px",
-                marginTop: "12px",
-                background: panicMode ? "#FDE2EA" : "#FFF1D6",
-                border: panicMode ? "1px solid #EB4C78" : "1px solid #F4DC00",
-                boxShadow: "none",
-              }}
-            >
-              <div style={{ fontWeight: 800 }}>Crew action</div>
-              <div style={{ marginTop: "6px", fontSize: "14px" }}>{current.actions}</div>
-              <div style={{ marginTop: "8px", fontSize: "14px", fontWeight: 700 }}>
-                {panicMode
-                  ? "Panic mode: brutally short stop."
-                  : nextActionFromDelta(current.deltaMs)}
-              </div>
-            </div>
-
-            <div style={{ marginTop: "12px" }}>
-              <input
-                style={styles.input}
-                placeholder="Quick note… feet, calories, mood"
-                value={current.note}
-                onChange={(e) => setNote(currentIndex, e.target.value)}
-              />
-            </div>
-
-            <div style={{ marginTop: "10px" }}>
-              <button
-                style={{ ...styles.smallButton("secondary"), width: "100%" }}
-                onClick={() => clearStation(currentIndex)}
-              >
-                Clear this stop
-              </button>
-            </div>
-          </div>
-        )}
-
         {tab === "stations" && (
-          <div style={{ ...styles.card, maxHeight: "75vh", overflow: "auto" }}>
-            <div style={styles.sectionTitle}>All aid stations</div>
-            <div style={{ display: "grid", gap: "10px", marginTop: "12px" }}>
-              {data.map((station, idx) => {
-                const s = statusFromDelta(station.deltaMs);
-                const hasNote = !!station.note?.trim();
-                const noteOpen = !!openStationNotes[idx];
-
-                return (
-                  <div
-                    key={station.name}
-                    style={{
-                      background: "#FFF8EF",
-                      borderRadius: "18px",
-                      padding: "12px",
-                      border: "1px solid #E8D7C2",
-                      boxSizing: "border-box",
-                      overflowX: "hidden",
-                    }}
-                  >
-                    <div style={{ display: "flex", justifyContent: "space-between", gap: "8px" }}>
-                      <div style={{ minWidth: 0 }}>
-                        <div style={{ fontWeight: 800 }}>{station.name}</div>
-                        <div style={styles.muted}>Mile {formatMile(station.mile)}</div>
-                      </div>
-                      <div
-                        style={{
-                          ...styles.badge,
-                          background: panicMode ? "#FDE2EA" : s.bg,
-                          color: panicMode ? "#A7345D" : s.color,
-                          borderColor: "transparent",
-                        }}
-                      >
-                        {panicMode ? "Trim stop" : s.label}
-                      </div>
-                    </div>
-
-                    <div style={{ ...styles.grid2, marginTop: "8px", fontSize: "13px" }}>
-                      <div>
-                        In: <strong>{formatTimeOnly(station.plannedIn)}</strong>
-                      </div>
-                      <div>
-                        Out: <strong>{formatTimeOnly(station.plannedOut)}</strong>
-                      </div>
-                      <div>
-                        Actual in: <strong>{formatTimeOnly(station.actualIn)}</strong>
-                      </div>
-                      <div>
-                        Actual out: <strong>{formatTimeOnly(station.actualOut)}</strong>
-                      </div>
-                      <div>
-                        Stop time: <strong>{formatDuration(station.stopMs)}</strong>
-                      </div>
-                    </div>
-
-                    {hasNote && (
-                      <div style={{ marginTop: "10px" }}>
-                        <button
-                          style={styles.smallButton("secondary")}
-                          onClick={() => toggleStationNote(idx)}
-                        >
-                          {noteOpen ? "Hide note" : "Show note"}
-                        </button>
-                        {noteOpen && <div style={styles.noteBox}>{station.note}</div>}
-                      </div>
-                    )}
-
-                    <div style={{ ...styles.grid2, marginTop: "10px" }}>
-                      <button
-                        style={styles.smallButton("primary")}
-                        onClick={() => stamp(idx, "actualIn")}
-                      >
-                        IN
-                      </button>
-                      <button
-                        style={styles.smallButton("secondary")}
-                        onClick={() => stamp(idx, "actualOut")}
-                      >
-                        OUT
-                      </button>
-                    </div>
+          <div style={styles.card}>
+            <h3>Stations</h3>
+            {stations.map((s, i) => {
+              const c = getCrew(s, driveData);
+              return (
+                <div key={s.name} style={{ borderTop: "1px solid #e5d3b3", padding: "12px 0" }}>
+                  <strong>{s.name}</strong>
+                  <div style={styles.small}>Mile {s.mile} · ETA {fmt(s.plannedIn)}</div>
+                  <span style={styles.badge(c.status)}>{c.status}</span>
+                  <div style={{ fontSize: 13, marginTop: 8 }}>
+                    Hotel: {c.hotel}<br />
+                    Optional: {c.optional}<br />
+                    Distance: {c.distance} mi · Drive: {c.drive} min<br />
+                    Leave: {time(c.leave)} · Arrive: {time(c.arrive)}
                   </div>
-                );
-              })}
-            </div>
+                  <a href={mapsLink(s, c.hotel)} target="_blank" rel="noreferrer">
+                    Open route
+                  </a>
+                  <div style={{ ...styles.grid2, marginTop: 8 }}>
+                    <button style={styles.button} onClick={() => stamp(i, "in")}>IN</button>
+                    <button style={styles.button} onClick={() => stamp(i, "out")}>OUT</button>
+                  </div>
+                  {records[i]?.note && (
+                    <>
+                      <button
+                        style={{ ...styles.button, width: "100%", marginTop: 8, height: 40, fontSize: 14 }}
+                        onClick={() => toggleNote(i)}
+                      >
+                        {records[i].open ? "Hide note" : "Show note"}
+                      </button>
+                      {records[i].open && (
+                        <div style={{ marginTop: 8, background: "#fff", padding: 10, borderRadius: 12 }}>
+                          {records[i].note}
+                        </div>
+                      )}
+                    </>
+                  )}
+                </div>
+              );
+            })}
           </div>
         )}
 
-        {tab === "crew" && (
+        {tab === "drive" && (
           <div style={styles.card}>
-            <div style={styles.sectionTitle}>Crew rules</div>
-
-            <div style={{ display: "grid", gap: "10px", marginTop: "12px" }}>
-              <div
-                style={{
-                  background: "#FDE2EA",
-                  border: "1px solid #EB4C78",
-                  borderRadius: "18px",
-                  padding: "12px",
-                }}
-              >
-                <div style={{ fontWeight: 800 }}>Critical stops</div>
-                <div style={{ ...styles.muted, color: "#A7345D", marginTop: "6px" }}>
-                  Whiskey, Mingus, Jerome, Sedona, Tuthill
+            <h3>Editable Drive Times</h3>
+            {stations.map((s) => {
+              const d = driveData[s.name] || {};
+              return (
+                <div key={s.name} style={{ borderTop: "1px solid #e5d3b3", padding: "12px 0" }}>
+                  <strong>{s.name}</strong>
+                  <div style={styles.small}>{d.hotel} · {d.distance} mi</div>
+                  <input
+                    style={styles.input}
+                    type="number"
+                    value={d.drive || ""}
+                    onChange={(e) => updateDrive(s.name, e.target.value)}
+                  />
                 </div>
-              </div>
-
-              <div style={styles.statBox}>
-                <div style={{ fontWeight: 800 }}>Time rules</div>
-                <div style={{ ...styles.muted, marginTop: "6px", lineHeight: 1.6 }}>
-                  ≤15 min behind: stay plan
-                  <br />
-                  30–60 min behind: shorten next stop
-                  <br />
-                  &gt;60 min behind: cut non-critical sleep
-                </div>
-              </div>
-
-              <div style={styles.statBox}>
-                <div style={{ fontWeight: 800 }}>Shoe changes</div>
-                <div style={{ ...styles.muted, marginTop: "6px", lineHeight: 1.6 }}>
-                  Whiskey → ROAD
-                  <br />
-                  Jerome → ROAD
-                  <br />
-                  Dead Horse → TRAIL
-                  <br />
-                  Schnebly → ROAD
-                  <br />
-                  Tuthill → TRAIL
-                  <br />
-                  Wildcat → ROAD
-                </div>
-              </div>
-
-              <div style={styles.statBox}>
-                <div style={{ fontWeight: 800 }}>Live recommendation</div>
-                <div style={{ ...styles.muted, marginTop: "6px" }}>
-                  {panicMode
-                    ? "Panic mode is ON. Strip anything non-essential."
-                    : nextActionFromDelta(biggestLoss)}
-                </div>
-              </div>
-
-              <button
-                style={styles.smallButton(crewForecastOpen ? "primary" : "secondary")}
-                onClick={() => setCrewForecastOpen((v) => !v)}
-              >
-                {crewForecastOpen ? "Hide forecast tools" : "Show forecast tools"}
-              </button>
-
-              {crewForecastOpen && (
-                <div style={{ display: "grid", gap: "10px" }}>
-                  <div style={styles.statBox}>
-                    <div style={{ fontWeight: 800 }}>Predicted finish</div>
-                    <div style={{ marginTop: "6px", fontSize: "20px", fontWeight: 800 }}>
-                      {forecast.predictedFinishIso ? formatDateTime(forecast.predictedFinishIso) : "—"}
-                    </div>
-                    <div style={{ ...styles.muted, marginTop: "6px" }}>
-                      Based on actual trend through {forecast.basedOnStation}
-                    </div>
-                  </div>
-
-                  <div style={styles.grid2}>
-                    <div style={styles.statBox}>
-                      <div style={styles.muted}>Predicted cumulative hours</div>
-                      <div style={{ fontWeight: 800, fontSize: "18px" }}>
-                        {formatHoursDecimal(forecast.predictedFinishHours)}
-                      </div>
-                    </div>
-                    <div style={styles.statBox}>
-                      <div style={styles.muted}>Elapsed at trend point</div>
-                      <div style={{ fontWeight: 800, fontSize: "18px" }}>
-                        {formatDuration(forecast.basedOnElapsedMs)}
-                      </div>
-                    </div>
-                    <div style={styles.statBox}>
-                      <div style={styles.muted}>Trend vs Plan A</div>
-                      <div style={{ fontWeight: 800, fontSize: "18px" }}>
-                        {formatDuration(forecast.trendVsPlanA)}
-                      </div>
-                    </div>
-                    <div style={styles.statBox}>
-                      <div style={styles.muted}>Trend vs Plan B</div>
-                      <div style={{ fontWeight: 800, fontSize: "18px" }}>
-                        {formatDuration(forecast.trendVsPlanB)}
-                      </div>
-                    </div>
-                  </div>
-
-                  <div style={styles.statBox}>
-                    <div style={{ fontWeight: 800 }}>How this works</div>
-                    <div style={{ ...styles.muted, marginTop: "6px", lineHeight: 1.6 }}>
-                      Forecast updates automatically from the furthest station with an actual IN or OUT
-                      time. It uses your current real elapsed pace per mile and projects that to the
-                      finish, so crew can see where finish time is trending even when you are between
-                      Plan A and Plan B.
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
+              );
+            })}
           </div>
         )}
 
         {tab === "backup" && (
           <div style={styles.card}>
-            <div style={styles.sectionTitle}>Backup + transfer</div>
-            <div style={{ ...styles.muted, marginTop: "6px" }}>
-              Use this before crew phone handoffs or if you want a second-device backup.
-            </div>
-
-            <div style={{ ...styles.grid2, marginTop: "12px" }}>
-              <button style={styles.smallButton("primary")} onClick={exportData}>
-                Export
-              </button>
-              <button style={styles.smallButton("secondary")} onClick={copyExport}>
-                Copy JSON
-              </button>
-            </div>
-
-            <textarea
-              style={{ ...styles.textarea, marginTop: "12px" }}
-              placeholder="Exported backup appears here."
-              value={exportText}
-              onChange={(e) => setExportText(e.target.value)}
-            />
-
-            <textarea
-              style={{ ...styles.textarea, marginTop: "12px" }}
-              placeholder="Paste a backup here to restore this device."
-              value={importText}
-              onChange={(e) => setImportText(e.target.value)}
-            />
-
-            <div style={{ display: "grid", gap: "10px", marginTop: "12px" }}>
-              <button style={styles.smallButton("secondary")} onClick={importData}>
-                Restore from pasted backup
-              </button>
-              <button style={styles.smallButton("danger")} onClick={resetAll}>
-                Reset everything
-              </button>
-            </div>
+            <h3>Backup</h3>
+            <button style={{ ...styles.button, width: "100%" }} onClick={exportBackup}>
+              Copy Backup JSON
+            </button>
+            <button
+              style={{ ...styles.button, width: "100%", marginTop: 10, background: "#fee2e2" }}
+              onClick={resetAll}
+            >
+              Reset All Local Data
+            </button>
           </div>
         )}
       </div>
