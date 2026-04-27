@@ -1,0 +1,9 @@
+{
+  "name": "Cocodona Crew Console",
+  "short_name": "Cocodona",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#FFF8EF",
+  "theme_color": "#ef476f",
+  "icons": []
+}
