@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 
-const STORAGE_KEY = "cocodona-crew-v8-live-prediction";
+const STORAGE_KEY = "cocodona-crew-v9-access-labels";
 
 const stations = [
   { name: "Cottonwood Creek", mile: 7.4, in: "2026-05-04T07:30:00", out: "2026-05-04T07:35:00" },
@@ -8,6 +8,7 @@ const stations = [
   { name: "Crown King", mile: 36.6, in: "2026-05-04T18:00:00", out: "2026-05-04T19:00:00" },
   { name: "Arrastra Creek", mile: 51.1, in: "2026-05-04T23:00:00", out: "2026-05-05T00:00:00" },
   { name: "Kamp Kipa", mile: 60.9, in: "2026-05-05T04:00:00", out: "2026-05-05T05:00:00" },
+  { name: "Camp W", mile: 67.5, in: "2026-05-05T06:00:00", out: "2026-05-05T06:10:00" },
   { name: "Whiskey Row", mile: 75.7, in: "2026-05-05T08:30:00", out: "2026-05-05T10:30:00" },
   { name: "Watson Lake", mile: 82.8, in: "2026-05-05T13:00:00", out: "2026-05-05T13:10:00" },
   { name: "Fain Ranch", mile: 94.5, in: "2026-05-05T16:00:00", out: "2026-05-05T17:00:00" },
@@ -26,29 +27,51 @@ const stations = [
   { name: "Finish", mile: 252.9, in: "2026-05-08T14:00:00", out: "" },
 ];
 
+const crewAccessibleAid = new Set([
+  "Crown King",
+  "Whiskey Row",
+  "Watson Lake",
+  "Fain Ranch",
+  "Mingus Mountain",
+  "Jerome",
+  "Dead Horse",
+  "Sedona Posse Grounds",
+  "Schnebly Hill",
+  "Munds Park",
+  "Fort Tuthill",
+  "Walnut Canyon",
+  "Wildcat Hill",
+  "Finish",
+]);
+
 const driveData = {
   "Cottonwood Creek": { hotel: "Hotel St. Michael", distance: 58, drive: 75 },
   "Lane Mountain": { hotel: "Hotel St. Michael", distance: 49, drive: 70 },
   "Crown King": { hotel: "Hotel St. Michael", distance: 48, drive: 85 },
   "Arrastra Creek": { hotel: "Hotel St. Michael", distance: 28, drive: 60 },
   "Kamp Kipa": { hotel: "Hotel St. Michael", distance: 18, drive: 40 },
+  "Camp W": { hotel: "Hotel St. Michael", distance: 10, drive: 25 },
   "Whiskey Row": { hotel: "Hotel St. Michael", distance: 0.2, drive: 5 },
   "Watson Lake": { hotel: "Hotel St. Michael", distance: 5, drive: 15 },
   "Fain Ranch": { hotel: "Hotel St. Michael", distance: 16, drive: 30 },
-  "Mingus Mountain": { hotel: "Grand Hotel", distance: 21, drive: 45 },
-  Jerome: { hotel: "Grand Hotel", distance: 0.2, drive: 5 },
-  "Dead Horse": { hotel: "Sky Rock Sedona", distance: 20, drive: 35 },
-  "Deer Pass": { hotel: "Sky Rock Sedona", distance: 26, drive: 45 },
-  "Sedona Posse Grounds": { hotel: "Sky Rock Sedona", distance: 2, drive: 8 },
-  "Schnebly Hill": { hotel: "Sky Rock Sedona", distance: 7, drive: 20 },
-  "Munds Park": { hotel: "Little America", distance: 22, drive: 30 },
-  "Kelly Canyon": { hotel: "Little America", distance: 14, drive: 25 },
-  "Fort Tuthill": { hotel: "Little America", distance: 7, drive: 15 },
-  "Walnut Canyon": { hotel: "Little America", distance: 10, drive: 25 },
-  "Wildcat Hill": { hotel: "Little America", distance: 9, drive: 20 },
-  "Trinity Heights": { hotel: "Little America", distance: 4, drive: 12 },
-  Finish: { hotel: "Little America", distance: 3, drive: 10 },
+  "Mingus Mountain": { hotel: "The Grand Hotel", distance: 21, drive: 45 },
+  Jerome: { hotel: "The Grand Hotel", distance: 0.2, drive: 5 },
+  "Dead Horse": { hotel: "The Sky Rock Sedona", distance: 20, drive: 35 },
+  "Deer Pass": { hotel: "The Sky Rock Sedona", distance: 26, drive: 45 },
+  "Sedona Posse Grounds": { hotel: "The Sky Rock Sedona", distance: 2, drive: 8 },
+  "Schnebly Hill": { hotel: "The Sky Rock Sedona", distance: 7, drive: 20 },
+  "Munds Park": { hotel: "Little America Hotel", distance: 22, drive: 30 },
+  "Kelly Canyon": { hotel: "Little America Hotel", distance: 14, drive: 25 },
+  "Fort Tuthill": { hotel: "Little America Hotel", distance: 7, drive: 15 },
+  "Walnut Canyon": { hotel: "Little America Hotel", distance: 10, drive: 25 },
+  "Wildcat Hill": { hotel: "Little America Hotel", distance: 9, drive: 20 },
+  "Trinity Heights": { hotel: "Little America Hotel", distance: 4, drive: 12 },
+  Finish: { hotel: "Little America Hotel", distance: 3, drive: 10 },
 };
+
+function buildEmptyRecords() {
+  return stations.map(() => ({ in: "", out: "", note: "", open: false }));
+}
 
 function time(val) {
   if (!val) return "—";
@@ -73,11 +96,49 @@ function duration(ms) {
   return `${sign}${Math.floor(mins / 60)}h ${mins % 60}m`;
 }
 
+function accessLabel(name) {
+  return crewAccessibleAid.has(name) ? "CREW ACCESSIBLE" : "NO CREW ACCESS";
+}
+
+function accessStyle(name) {
+  const ok = crewAccessibleAid.has(name);
+  return {
+    display: "inline-block",
+    marginTop: 8,
+    padding: "6px 10px",
+    borderRadius: 999,
+    fontSize: 12,
+    fontWeight: 900,
+    background: ok ? "#dcfce7" : "#fee2e2",
+    color: ok ? "#166534" : "#991b1b",
+  };
+}
+
+function statusStyle(status) {
+  return {
+    display: "inline-block",
+    marginTop: 8,
+    padding: "6px 10px",
+    borderRadius: 999,
+    fontSize: 12,
+    fontWeight: 900,
+    background:
+      status === "MISSED"
+        ? "#fee2e2"
+        : status === "LEAVE NOW"
+          ? "#ef476f"
+          : status === "SOON"
+            ? "#ffd60a"
+            : "#dcfce7",
+    color: status === "LEAVE NOW" ? "#fff" : status === "MISSED" ? "#991b1b" : "#3B2432",
+  };
+}
+
 function getCrew(station) {
-  const d = driveData[station.name] || {};
+  const d = driveData[station.name] || { hotel: "—", distance: "—", drive: 30 };
   const eta = new Date(station.in);
   const arrive = new Date(eta.getTime() - 60 * 60000);
-  const leave = new Date(arrive.getTime() - (d.drive || 30) * 60000);
+  const leave = new Date(arrive.getTime() - Number(d.drive || 30) * 60000);
 
   const now = new Date();
   let status = "OK";
@@ -95,8 +156,10 @@ function getNextDrive(current, next) {
   return { miles: miles.toFixed(1), drive };
 }
 
-function buildEmptyRecords() {
-  return stations.map(() => ({ in: "", out: "", note: "", open: false }));
+function mapsLink(station, hotel) {
+  return `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(
+    hotel || ""
+  )}&destination=${encodeURIComponent(station.name + " Cocodona")}`;
 }
 
 export default function App() {
@@ -193,22 +256,27 @@ export default function App() {
   const styles = {
     page: {
       minHeight: "100vh",
-      background: "#fdf6ec",
+      background: "linear-gradient(180deg, #FFF8EF 0%, #F8EFE2 100%)",
       padding: 12,
       fontFamily: "Inter, system-ui, -apple-system, sans-serif",
       color: "#3B2432",
+      boxSizing: "border-box",
+      overflowX: "hidden",
     },
     wrap: {
       maxWidth: 430,
       margin: "0 auto",
       display: "grid",
       gap: 12,
+      paddingBottom: 40,
     },
     card: {
       background: "#fff7ed",
       borderRadius: 22,
       padding: 14,
       border: "1px solid #e5d3b3",
+      boxSizing: "border-box",
+      overflow: "hidden",
     },
     grid2: {
       display: "grid",
@@ -221,6 +289,7 @@ export default function App() {
       border: "none",
       fontWeight: 800,
       padding: 10,
+      cursor: "pointer",
     },
     input: {
       width: "100%",
@@ -229,6 +298,7 @@ export default function App() {
       border: "1px solid #e5d3b3",
       padding: "0 10px",
       boxSizing: "border-box",
+      background: "#fffdf9",
     },
     small: {
       fontSize: 13,
@@ -242,6 +312,8 @@ export default function App() {
         <div style={styles.card}>
           <h2 style={{ margin: 0 }}>{current.name}</h2>
           <div style={styles.small}>Mile {current.mile}</div>
+
+          <div style={accessStyle(current.name)}>{accessLabel(current.name)}</div>
 
           <div style={{ marginTop: 10 }}>
             <strong>Randi Planned</strong>
@@ -299,9 +371,18 @@ export default function App() {
             </div>
           </div>
 
-          <div style={{ marginTop: 10 }}>
-            <strong>Status:</strong> {crew.status}
-          </div>
+          <div style={statusStyle(crew.status)}>{crew.status}</div>
+
+          {crewAccessibleAid.has(current.name) && (
+            <a
+              href={mapsLink(current, crew.hotel)}
+              target="_blank"
+              rel="noreferrer"
+              style={{ display: "block", marginTop: 12, color: "#ef476f", fontWeight: 800 }}
+            >
+              Open hotel → aid route
+            </a>
+          )}
 
           {next && (
             <div style={{ marginTop: 12 }}>
@@ -352,14 +433,18 @@ export default function App() {
                   <div style={styles.small}>
                     Mile {s.mile} · Planned In {time(s.in)} · Out {time(s.out)}
                   </div>
-                  <div style={{ fontSize: 13, marginTop: 6 }}>
-                    Hotel: {c.hotel}
+
+                  <div style={accessStyle(s.name)}>{accessLabel(s.name)}</div>
+
+                  <div style={{ fontSize: 13, marginTop: 8 }}>
+                    Hotel: {crewAccessibleAid.has(s.name) ? c.hotel : "No crew access"}
                     <br />
-                    Hotel drive: {c.drive} min / {c.distance} mi
+                    Hotel drive: {crewAccessibleAid.has(s.name) ? `${c.drive} min / ${c.distance} mi` : "—"}
                     <br />
-                    Crew leave: {time(c.leave)} · arrive: {time(c.arrive)}
+                    Crew leave: {crewAccessibleAid.has(s.name) ? time(c.leave) : "—"} · arrive:{" "}
+                    {crewAccessibleAid.has(s.name) ? time(c.arrive) : "—"}
                     <br />
-                    Status: {c.status}
+                    Status: {crewAccessibleAid.has(s.name) ? c.status : "NO CREW ACCESS"}
                     <br />
                     {nextStation && (
                       <>
@@ -367,6 +452,17 @@ export default function App() {
                       </>
                     )}
                   </div>
+
+                  {crewAccessibleAid.has(s.name) && (
+                    <a
+                      href={mapsLink(s, c.hotel)}
+                      target="_blank"
+                      rel="noreferrer"
+                      style={{ display: "block", marginTop: 8, color: "#ef476f", fontWeight: 800 }}
+                    >
+                      Open route
+                    </a>
+                  )}
 
                   <div style={{ ...styles.grid2, marginTop: 8 }}>
                     <button style={styles.button} onClick={() => stamp(i, "in")}>
