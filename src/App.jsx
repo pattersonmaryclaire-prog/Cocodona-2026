@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 
-const STORAGE_KEY = "cocodona-crew-v9-access-labels";
+const STORAGE_KEY = "cocodona-crew-v10-pwa-readonly";
 
 const stations = [
   { name: "Cottonwood Creek", mile: 7.4, in: "2026-05-04T07:30:00", out: "2026-05-04T07:35:00" },
@@ -162,11 +162,37 @@ function mapsLink(station, hotel) {
   )}&destination=${encodeURIComponent(station.name + " Cocodona")}`;
 }
 
+function encodeShareData(records) {
+  try {
+    return btoa(unescape(encodeURIComponent(JSON.stringify(records))));
+  } catch {
+    return "";
+  }
+}
+
+function decodeShareData(value) {
+  try {
+    return JSON.parse(decodeURIComponent(escape(atob(value))));
+  } catch {
+    return null;
+  }
+}
+
 export default function App() {
+  const params = new URLSearchParams(window.location.search);
+  const readOnly = params.get("readonly") === "1";
+  const sharedData = params.get("data");
+
   const [records, setRecords] = useState(buildEmptyRecords);
   const [tab, setTab] = useState("active");
 
   useEffect(() => {
+    if (sharedData) {
+      const decoded = decodeShareData(sharedData);
+      if (decoded?.length) setRecords(decoded);
+      return;
+    }
+
     try {
       const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
       if (saved?.records) setRecords(saved.records);
@@ -175,8 +201,9 @@ export default function App() {
   }, []);
 
   useEffect(() => {
+    if (readOnly) return;
     localStorage.setItem(STORAGE_KEY, JSON.stringify({ records, tab }));
-  }, [records, tab]);
+  }, [records, tab, readOnly]);
 
   const currentIndexRaw = records.findIndex((r) => !r.out);
   const currentIndex = currentIndexRaw === -1 ? stations.length - 1 : currentIndexRaw;
@@ -235,11 +262,13 @@ export default function App() {
   }, [records]);
 
   function stamp(i, field) {
+    if (readOnly) return;
     const now = new Date().toISOString();
     setRecords((prev) => prev.map((r, idx) => (idx === i ? { ...r, [field]: now } : r)));
   }
 
   function updateNote(i, note) {
+    if (readOnly) return;
     setRecords((prev) => prev.map((r, idx) => (idx === i ? { ...r, note } : r)));
   }
 
@@ -248,9 +277,17 @@ export default function App() {
   }
 
   function resetAll() {
+    if (readOnly) return;
     if (!confirm("Reset all local race data?")) return;
     setRecords(buildEmptyRecords());
     localStorage.removeItem(STORAGE_KEY);
+  }
+
+  function copyReadOnlyLink() {
+    const data = encodeShareData(records);
+    const url = `${window.location.origin}${window.location.pathname}?readonly=1&data=${data}`;
+    navigator.clipboard.writeText(url);
+    alert("Read-only crew link copied.");
   }
 
   const styles = {
@@ -289,7 +326,8 @@ export default function App() {
       border: "none",
       fontWeight: 800,
       padding: 10,
-      cursor: "pointer",
+      cursor: readOnly ? "not-allowed" : "pointer",
+      opacity: readOnly ? 0.65 : 1,
     },
     input: {
       width: "100%",
@@ -309,6 +347,12 @@ export default function App() {
   return (
     <div style={styles.page}>
       <div style={styles.wrap}>
+        {readOnly && (
+          <div style={{ ...styles.card, background: "#fee2e2", fontWeight: 900 }}>
+            READ-ONLY CREW VIEW
+          </div>
+        )}
+
         <div style={styles.card}>
           <h2 style={{ margin: 0 }}>{current.name}</h2>
           <div style={styles.small}>Mile {current.mile}</div>
@@ -325,12 +369,14 @@ export default function App() {
 
           <div style={{ ...styles.grid2, marginTop: 12 }}>
             <button
+              disabled={readOnly}
               style={{ ...styles.button, background: "#ef476f", color: "#fff" }}
               onClick={() => stamp(currentIndex, "in")}
             >
               TAP IN
             </button>
             <button
+              disabled={readOnly}
               style={{ ...styles.button, background: "#ffd60a", color: "#3B2432" }}
               onClick={() => stamp(currentIndex, "out")}
             >
@@ -339,36 +385,12 @@ export default function App() {
           </div>
 
           <div style={{ ...styles.grid2, marginTop: 12, fontSize: 13 }}>
-            <div>
-              <strong>Actual In</strong>
-              <br />
-              {fmt(records[currentIndex]?.in)}
-            </div>
-            <div>
-              <strong>Actual Out</strong>
-              <br />
-              {fmt(records[currentIndex]?.out)}
-            </div>
-            <div>
-              <strong>Hotel</strong>
-              <br />
-              {crew.hotel}
-            </div>
-            <div>
-              <strong>Hotel Drive</strong>
-              <br />
-              {crew.drive} min / {crew.distance} mi
-            </div>
-            <div>
-              <strong>Crew Leave</strong>
-              <br />
-              {time(crew.leave)}
-            </div>
-            <div>
-              <strong>Crew Arrive</strong>
-              <br />
-              {time(crew.arrive)}
-            </div>
+            <div><strong>Actual In</strong><br />{fmt(records[currentIndex]?.in)}</div>
+            <div><strong>Actual Out</strong><br />{fmt(records[currentIndex]?.out)}</div>
+            <div><strong>Hotel</strong><br />{crew.hotel}</div>
+            <div><strong>Hotel Drive</strong><br />{crew.drive} min / {crew.distance} mi</div>
+            <div><strong>Crew Leave</strong><br />{time(crew.leave)}</div>
+            <div><strong>Crew Arrive</strong><br />{time(crew.arrive)}</div>
           </div>
 
           <div style={statusStyle(crew.status)}>{crew.status}</div>
@@ -395,6 +417,7 @@ export default function App() {
           )}
 
           <input
+            disabled={readOnly}
             style={{ ...styles.input, marginTop: 12 }}
             placeholder="Notes"
             value={records[currentIndex]?.note || ""}
@@ -408,6 +431,8 @@ export default function App() {
               key={t}
               style={{
                 ...styles.button,
+                cursor: "pointer",
+                opacity: 1,
                 background: tab === t ? "#ef476f" : "#fff7ed",
                 color: tab === t ? "#fff" : "#3B2432",
                 border: "1px solid #e5d3b3",
@@ -453,27 +478,17 @@ export default function App() {
                     )}
                   </div>
 
-                  {crewAccessibleAid.has(s.name) && (
-                    <a
-                      href={mapsLink(s, c.hotel)}
-                      target="_blank"
-                      rel="noreferrer"
-                      style={{ display: "block", marginTop: 8, color: "#ef476f", fontWeight: 800 }}
-                    >
-                      Open route
-                    </a>
-                  )}
-
                   <div style={{ ...styles.grid2, marginTop: 8 }}>
-                    <button style={styles.button} onClick={() => stamp(i, "in")}>
+                    <button disabled={readOnly} style={styles.button} onClick={() => stamp(i, "in")}>
                       IN
                     </button>
-                    <button style={styles.button} onClick={() => stamp(i, "out")}>
+                    <button disabled={readOnly} style={styles.button} onClick={() => stamp(i, "out")}>
                       OUT
                     </button>
                   </div>
 
                   <input
+                    disabled={readOnly}
                     style={{ ...styles.input, marginTop: 8 }}
                     placeholder="Station note"
                     value={records[i]?.note || ""}
@@ -482,7 +497,7 @@ export default function App() {
 
                   {records[i]?.note && (
                     <button
-                      style={{ ...styles.button, width: "100%", marginTop: 8 }}
+                      style={{ ...styles.button, width: "100%", marginTop: 8, cursor: "pointer", opacity: 1 }}
                       onClick={() => toggleNote(i)}
                     >
                       {records[i].open ? "Hide note" : "Show note"}
@@ -503,66 +518,55 @@ export default function App() {
         {tab === "prediction" && (
           <div style={styles.card}>
             <h3>Live Prediction Engine</h3>
-            <div>
-              <strong>Based on:</strong>
-              <br />
-              {prediction.basedOn}
-            </div>
-            <div style={{ marginTop: 10 }}>
-              <strong>Projected Finish:</strong>
-              <br />
-              {fmt(prediction.projectedFinish)}
-            </div>
-            <div style={{ marginTop: 10 }}>
-              <strong>Projected Cumulative Hours:</strong>
-              <br />
-              {prediction.projectedHours ? `${prediction.projectedHours.toFixed(1)} hrs` : "—"}
-            </div>
-            <div style={{ marginTop: 10 }}>
-              <strong>Trend vs Planned Finish:</strong>
-              <br />
-              {duration(prediction.deltaVsPlan)}
-            </div>
-            <div style={{ marginTop: 10 }}>
-              <strong>Projected Next Station:</strong>
-              <br />
-              {prediction.nextTarget
-                ? `${prediction.nextTarget.name}: ${fmt(prediction.projectedNext)}`
-                : "—"}
-            </div>
-            <div style={{ marginTop: 10 }}>
-              <strong>Average Actual Pace:</strong>
-              <br />
-              {prediction.paceMinPerMile
-                ? `${prediction.paceMinPerMile.toFixed(1)} min / mile elapsed`
-                : "—"}
-            </div>
+            <strong>Based on:</strong><br />{prediction.basedOn}
+            <br /><br />
+            <strong>Projected Finish:</strong><br />{fmt(prediction.projectedFinish)}
+            <br /><br />
+            <strong>Projected Cumulative Hours:</strong><br />
+            {prediction.projectedHours ? `${prediction.projectedHours.toFixed(1)} hrs` : "—"}
+            <br /><br />
+            <strong>Trend vs Planned Finish:</strong><br />{duration(prediction.deltaVsPlan)}
+            <br /><br />
+            <strong>Projected Next Station:</strong><br />
+            {prediction.nextTarget ? `${prediction.nextTarget.name}: ${fmt(prediction.projectedNext)}` : "—"}
           </div>
         )}
 
         {tab === "backup" && (
           <div style={styles.card}>
-            <h3>Backup</h3>
-            <button
-              style={{ ...styles.button, width: "100%" }}
-              onClick={() => {
-                navigator.clipboard.writeText(JSON.stringify({ records, tab }, null, 2));
-                alert("Backup copied.");
-              }}
-            >
-              Copy Backup JSON
-            </button>
-            <button
-              style={{
-                ...styles.button,
-                width: "100%",
-                marginTop: 10,
-                background: "#fee2e2",
-              }}
-              onClick={resetAll}
-            >
-              Reset All
-            </button>
+            <h3>Backup / Share</h3>
+
+            {!readOnly && (
+              <>
+                <button style={{ ...styles.button, width: "100%" }} onClick={copyReadOnlyLink}>
+                  Copy Read-Only Crew Link
+                </button>
+
+                <button
+                  style={{ ...styles.button, width: "100%", marginTop: 10 }}
+                  onClick={() => {
+                    navigator.clipboard.writeText(JSON.stringify({ records, tab }, null, 2));
+                    alert("Backup copied.");
+                  }}
+                >
+                  Copy Backup JSON
+                </button>
+
+                <button
+                  style={{
+                    ...styles.button,
+                    width: "100%",
+                    marginTop: 10,
+                    background: "#fee2e2",
+                  }}
+                  onClick={resetAll}
+                >
+                  Reset All
+                </button>
+              </>
+            )}
+
+            {readOnly && <div>This is a locked crew view. No edits allowed.</div>}
           </div>
         )}
       </div>
