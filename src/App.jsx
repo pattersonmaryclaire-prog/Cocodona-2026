@@ -6,29 +6,33 @@ const RACE_START = "2026-05-04T05:00:00";
 const GOAL_FINISH = "2026-05-08T02:00:00";
 const FINISH_MILE = 253.3;
 
+const RACE_START = "2026-05-04T05:00:00";
+const GOAL_FINISH = "2026-05-08T02:00:00";
+const FINISH_MILE = 253.3;
+
 const stationPlan = [
-  { name: "Cottonwood Creek", mile: 7.4, restMinutes: 5 },
-  { name: "Lane Mountain", mile: 32.5, restMinutes: 30 },
-  { name: "Crown King", mile: 36.6, restMinutes: 60 },
-  { name: "Arrastra Creek", mile: 51.0, restMinutes: 60 },
-  { name: "Kamp Kipa", mile: 60.8, restMinutes: 60 },
-  { name: "Camp W", mile: 67.4, restMinutes: 10 },
-  { name: "Whiskey Row", mile: 75.6, restMinutes: 120 },
-  { name: "Watson Lake", mile: 82.8, restMinutes: 10 },
-  { name: "Fain Ranch", mile: 96.5, restMinutes: 60 },
-  { name: "Mingus Mountain", mile: 107.2, restMinutes: 60 },
-  { name: "Jerome", mile: 124.2, restMinutes: 120 },
-  { name: "Dead Horse", mile: 132.9, restMinutes: 15 },
-  { name: "Deer Pass", mile: 146.9, restMinutes: 60 },
-  { name: "Sedona Posse Grounds", mile: 159.1, restMinutes: 120 },
-  { name: "Schnebly Hill", mile: 176.1, restMinutes: 60 },
-  { name: "Munds Park", mile: 190.0, restMinutes: 60 },
-  { name: "Kelly Canyon", mile: 202.7, restMinutes: 10 },
-  { name: "Fort Tuthill", mile: 211.0, restMinutes: 120 },
-  { name: "Walnut Canyon", mile: 227.1, restMinutes: 60 },
-  { name: "Wildcat Hill", mile: 234.1, restMinutes: 30 },
-  { name: "Trinity Heights", mile: 249.4, restMinutes: 5 },
-  { name: "Finish", mile: 253.3, restMinutes: 0 },
+  { name: "Cottonwood Creek", mile: 7.4, restMinutes: 5, weightFromPrevious: 1.05 },
+  { name: "Lane Mountain", mile: 32.5, restMinutes: 30, weightFromPrevious: 1.25 },
+  { name: "Crown King", mile: 36.6, restMinutes: 60, weightFromPrevious: 1.75 },
+  { name: "Arrastra Creek", mile: 51.0, restMinutes: 60, weightFromPrevious: 1.05 },
+  { name: "Kamp Kipa", mile: 60.8, restMinutes: 60, weightFromPrevious: 1.1 },
+  { name: "Camp W", mile: 67.4, restMinutes: 10, weightFromPrevious: 0.95 },
+  { name: "Whiskey Row", mile: 75.6, restMinutes: 120, weightFromPrevious: 0.9 },
+  { name: "Watson Lake", mile: 82.8, restMinutes: 10, weightFromPrevious: 0.9 },
+  { name: "Fain Ranch", mile: 96.5, restMinutes: 60, weightFromPrevious: 0.95 },
+  { name: "Mingus Mountain", mile: 107.2, restMinutes: 60, weightFromPrevious: 1.35 },
+  { name: "Jerome", mile: 124.2, restMinutes: 120, weightFromPrevious: 1.15 },
+  { name: "Dead Horse", mile: 132.9, restMinutes: 15, weightFromPrevious: 1.0 },
+  { name: "Deer Pass", mile: 146.9, restMinutes: 60, weightFromPrevious: 1.15 },
+  { name: "Sedona Posse Grounds", mile: 159.1, restMinutes: 120, weightFromPrevious: 1.3 },
+  { name: "Schnebly Hill", mile: 176.1, restMinutes: 60, weightFromPrevious: 1.4 },
+  { name: "Munds Park", mile: 190.0, restMinutes: 60, weightFromPrevious: 1.05 },
+  { name: "Kelly Canyon", mile: 202.7, restMinutes: 10, weightFromPrevious: 1.0 },
+  { name: "Fort Tuthill", mile: 211.0, restMinutes: 120, weightFromPrevious: 1.05 },
+  { name: "Walnut Canyon", mile: 227.1, restMinutes: 60, weightFromPrevious: 1.2 },
+  { name: "Wildcat Hill", mile: 234.1, restMinutes: 30, weightFromPrevious: 1.15 },
+  { name: "Trinity Heights", mile: 249.4, restMinutes: 5, weightFromPrevious: 1.1 },
+  { name: "Finish", mile: 253.3, restMinutes: 0, weightFromPrevious: 1.0 },
 ];
 
 function roundToFiveMinutes(date) {
@@ -49,25 +53,54 @@ function localDateString(date) {
 function generateStations() {
   const start = new Date(RACE_START);
   const finish = new Date(GOAL_FINISH);
-  const totalMs = finish - start;
+  const totalRaceMs = finish - start;
 
-  return stationPlan.map((s) => {
-    let plannedInDate;
+  const totalPlannedRestMs = stationPlan.reduce((sum, station) => {
+    if (station.name === "Finish") return sum;
+    return sum + station.restMinutes * 60000;
+  }, 0);
 
-    if (s.name === "Finish") {
-      plannedInDate = finish;
-    } else {
-      const progress = s.mile / FINISH_MILE;
-      plannedInDate = roundToFiveMinutes(new Date(start.getTime() + totalMs * progress));
-    }
+  const totalMovingMs = totalRaceMs - totalPlannedRestMs;
 
-    const plannedOutDate =
-      s.restMinutes > 0
-        ? new Date(plannedInDate.getTime() + s.restMinutes * 60000)
-        : null;
+  const weightedSegments = stationPlan.map((station, index) => {
+    const previousMile = index === 0 ? 0 : stationPlan[index - 1].mile;
+    const segmentMiles = station.mile - previousMile;
+    const weightedMiles = segmentMiles * station.weightFromPrevious;
 
     return {
-      ...s,
+      ...station,
+      previousMile,
+      segmentMiles,
+      weightedMiles,
+    };
+  });
+
+  const totalWeightedMiles = weightedSegments.reduce(
+    (sum, station) => sum + station.weightedMiles,
+    0
+  );
+
+  let cursor = new Date(start);
+
+  return weightedSegments.map((station) => {
+    const segmentMovingMs = (station.weightedMiles / totalWeightedMiles) * totalMovingMs;
+    const plannedInDate =
+      station.name === "Finish"
+        ? finish
+        : roundToFiveMinutes(new Date(cursor.getTime() + segmentMovingMs));
+
+    const plannedOutDate =
+      station.restMinutes > 0
+        ? roundToFiveMinutes(new Date(plannedInDate.getTime() + station.restMinutes * 60000))
+        : null;
+
+    cursor = plannedOutDate || plannedInDate;
+
+    return {
+      name: station.name,
+      mile: station.mile,
+      restMinutes: station.restMinutes,
+      weightFromPrevious: station.weightFromPrevious,
       in: localDateString(plannedInDate),
       out: plannedOutDate ? localDateString(plannedOutDate) : "",
     };
@@ -75,7 +108,6 @@ function generateStations() {
 }
 
 const stations = generateStations();
-
 const crewAccessibleAid = new Set([
   "Crown King",
   "Whiskey Row",
