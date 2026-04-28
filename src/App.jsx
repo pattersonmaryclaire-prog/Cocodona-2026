@@ -6,10 +6,6 @@ const RACE_START = "2026-05-04T05:00:00";
 const GOAL_FINISH = "2026-05-08T02:00:00";
 const FINISH_MILE = 253.3;
 
-const RACE_START = "2026-05-04T05:00:00";
-const GOAL_FINISH = "2026-05-08T02:00:00";
-const FINISH_MILE = 253.3;
-
 const stationPlan = [
   { name: "Cottonwood Creek", mile: 7.4, restMinutes: 5, weightFromPrevious: 1.05 },
   { name: "Lane Mountain", mile: 32.5, restMinutes: 30, weightFromPrevious: 1.25 },
