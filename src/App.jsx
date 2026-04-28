@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 
-const STORAGE_KEY = "cocodona-crew-v10-pwa-readonly";
+const STORAGE_KEY = "cocodona-crew-v11-planned-rest";
 
 const stations = [
   { name: "Cottonwood Creek", mile: 7.4, in: "2026-05-04T07:30:00", out: "2026-05-04T07:35:00" },
@@ -96,6 +96,105 @@ function duration(ms) {
   return `${sign}${Math.floor(mins / 60)}h ${mins % 60}m`;
 }
 
+function durationShort(ms) {
+  if (ms === null || ms === undefined || Number.isNaN(ms)) return "—";
+  const abs = Math.abs(ms);
+  const mins = Math.round(abs / 60000);
+  const h = Math.floor(mins / 60);
+  const m = mins % 60;
+  if (h && m) return `${h}h ${m}m`;
+  if (h) return `${h}h`;
+  return `${m}m`;
+}
+
+function formatPlannedLine(station) {
+  if (!station?.in) return "—";
+
+  const inDate = new Date(station.in);
+  const outDate = station.out ? new Date(station.out) : null;
+
+  const day = inDate.toLocaleDateString([], { weekday: "long" });
+  const date = `${inDate.getMonth() + 1}/${inDate.getDate()}`;
+  const inTime = inDate.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+  const outTime = outDate
+    ? outDate.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })
+    : "—";
+
+  return `${day}, ${date}, Planned In: ${inTime} Out: ${outTime}`;
+}
+
+function plannedRestMs(station) {
+  if (!station?.in || !station?.out) return null;
+  const ms = new Date(station.out) - new Date(station.in);
+  return ms > 0 ? ms : null;
+}
+
+function actualStopMs(record) {
+  if (!record?.in || !record?.out) return null;
+  const ms = new Date(record.out) - new Date(record.in);
+  return ms > 0 ? ms : null;
+}
+
+function restStatus(station, record) {
+  const planned = plannedRestMs(station);
+  const actual = actualStopMs(record);
+
+  if (!planned) {
+    return {
+      label: "No planned rest",
+      bg: "#E9E2D8",
+      color: "#6B5B4D",
+      delta: null,
+      actual,
+      planned,
+    };
+  }
+
+  if (!actual) {
+    return {
+      label: "Planned rest",
+      bg: "#F8E7B5",
+      color: "#6E5A00",
+      delta: null,
+      actual,
+      planned,
+    };
+  }
+
+  const delta = actual - planned;
+
+  if (delta <= 0) {
+    return {
+      label: "On / under rest",
+      bg: "#dcfce7",
+      color: "#166534",
+      delta,
+      actual,
+      planned,
+    };
+  }
+
+  if (delta <= 15 * 60000) {
+    return {
+      label: "Slight over rest",
+      bg: "#ffd60a",
+      color: "#3B2432",
+      delta,
+      actual,
+      planned,
+    };
+  }
+
+  return {
+    label: "Bleeding time",
+    bg: "#fee2e2",
+    color: "#991b1b",
+    delta,
+    actual,
+    planned,
+  };
+}
+
 function accessLabel(name) {
   return crewAccessibleAid.has(name) ? "CREW ACCESSIBLE" : "NO CREW ACCESS";
 }
@@ -131,6 +230,19 @@ function statusStyle(status) {
             ? "#ffd60a"
             : "#dcfce7",
     color: status === "LEAVE NOW" ? "#fff" : status === "MISSED" ? "#991b1b" : "#3B2432",
+  };
+}
+
+function restBadgeStyle(rest) {
+  return {
+    display: "inline-block",
+    marginTop: 8,
+    padding: "6px 10px",
+    borderRadius: 999,
+    fontSize: 12,
+    fontWeight: 900,
+    background: rest.bg,
+    color: rest.color,
   };
 }
 
@@ -212,6 +324,7 @@ export default function App() {
 
   const crew = getCrew(current);
   const nextDrive = getNextDrive(current, next);
+  const currentRest = restStatus(current, records[currentIndex]);
 
   const prediction = useMemo(() => {
     const start = new Date("2026-05-04T05:00:00");
@@ -362,9 +475,15 @@ export default function App() {
           <div style={{ marginTop: 10 }}>
             <strong>Randi Planned</strong>
             <br />
-            In: {time(current.in)}
+            {formatPlannedLine(current)}
             <br />
-            Out: {time(current.out)}
+            Planned Rest: {durationShort(plannedRestMs(current))}
+          </div>
+
+          <div style={restBadgeStyle(currentRest)}>
+            {currentRest.label}
+            {currentRest.actual ? ` · Actual ${durationShort(currentRest.actual)}` : ""}
+            {currentRest.delta ? ` · ${duration(currentRest.delta)} vs plan` : ""}
           </div>
 
           <div style={{ ...styles.grid2, marginTop: 12 }}>
@@ -385,12 +504,36 @@ export default function App() {
           </div>
 
           <div style={{ ...styles.grid2, marginTop: 12, fontSize: 13 }}>
-            <div><strong>Actual In</strong><br />{fmt(records[currentIndex]?.in)}</div>
-            <div><strong>Actual Out</strong><br />{fmt(records[currentIndex]?.out)}</div>
-            <div><strong>Hotel</strong><br />{crew.hotel}</div>
-            <div><strong>Hotel Drive</strong><br />{crew.drive} min / {crew.distance} mi</div>
-            <div><strong>Crew Leave</strong><br />{time(crew.leave)}</div>
-            <div><strong>Crew Arrive</strong><br />{time(crew.arrive)}</div>
+            <div>
+              <strong>Actual In</strong>
+              <br />
+              {fmt(records[currentIndex]?.in)}
+            </div>
+            <div>
+              <strong>Actual Out</strong>
+              <br />
+              {fmt(records[currentIndex]?.out)}
+            </div>
+            <div>
+              <strong>Hotel</strong>
+              <br />
+              {crew.hotel}
+            </div>
+            <div>
+              <strong>Hotel Drive</strong>
+              <br />
+              {crew.drive} min / {crew.distance} mi
+            </div>
+            <div>
+              <strong>Crew Leave</strong>
+              <br />
+              {time(crew.leave)}
+            </div>
+            <div>
+              <strong>Crew Arrive</strong>
+              <br />
+              {time(crew.arrive)}
+            </div>
           </div>
 
           <div style={statusStyle(crew.status)}>{crew.status}</div>
@@ -451,12 +594,23 @@ export default function App() {
               const c = getCrew(s);
               const nextStation = stations[i + 1];
               const stationDrive = getNextDrive(s, nextStation);
+              const r = restStatus(s, records[i]);
 
               return (
                 <div key={s.name} style={{ borderTop: "1px solid #e5d3b3", padding: "12px 0" }}>
                   <strong>{s.name}</strong>
-                  <div style={styles.small}>
-                    Mile {s.mile} · Planned In {time(s.in)} · Out {time(s.out)}
+                  <div style={styles.small}>Mile {s.mile}</div>
+
+                  <div style={{ fontSize: 12, marginTop: 4 }}>
+                    {formatPlannedLine(s)}
+                    <br />
+                    Planned Rest: {durationShort(plannedRestMs(s))}
+                  </div>
+
+                  <div style={restBadgeStyle(r)}>
+                    {r.label}
+                    {r.actual ? ` · Actual ${durationShort(r.actual)}` : ""}
+                    {r.delta ? ` · ${duration(r.delta)} vs plan` : ""}
                   </div>
 
                   <div style={accessStyle(s.name)}>{accessLabel(s.name)}</div>
@@ -477,6 +631,17 @@ export default function App() {
                       </>
                     )}
                   </div>
+
+                  {crewAccessibleAid.has(s.name) && (
+                    <a
+                      href={mapsLink(s, c.hotel)}
+                      target="_blank"
+                      rel="noreferrer"
+                      style={{ display: "block", marginTop: 8, color: "#ef476f", fontWeight: 800 }}
+                    >
+                      Open route
+                    </a>
+                  )}
 
                   <div style={{ ...styles.grid2, marginTop: 8 }}>
                     <button disabled={readOnly} style={styles.button} onClick={() => stamp(i, "in")}>
@@ -518,16 +683,28 @@ export default function App() {
         {tab === "prediction" && (
           <div style={styles.card}>
             <h3>Live Prediction Engine</h3>
-            <strong>Based on:</strong><br />{prediction.basedOn}
-            <br /><br />
-            <strong>Projected Finish:</strong><br />{fmt(prediction.projectedFinish)}
-            <br /><br />
-            <strong>Projected Cumulative Hours:</strong><br />
+            <strong>Based on:</strong>
+            <br />
+            {prediction.basedOn}
+            <br />
+            <br />
+            <strong>Projected Finish:</strong>
+            <br />
+            {fmt(prediction.projectedFinish)}
+            <br />
+            <br />
+            <strong>Projected Cumulative Hours:</strong>
+            <br />
             {prediction.projectedHours ? `${prediction.projectedHours.toFixed(1)} hrs` : "—"}
-            <br /><br />
-            <strong>Trend vs Planned Finish:</strong><br />{duration(prediction.deltaVsPlan)}
-            <br /><br />
-            <strong>Projected Next Station:</strong><br />
+            <br />
+            <br />
+            <strong>Trend vs Planned Finish:</strong>
+            <br />
+            {duration(prediction.deltaVsPlan)}
+            <br />
+            <br />
+            <strong>Projected Next Station:</strong>
+            <br />
             {prediction.nextTarget ? `${prediction.nextTarget.name}: ${fmt(prediction.projectedNext)}` : "—"}
           </div>
         )}
