@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 
-const STORAGE_KEY = "cocodona-crew-v11-planned-rest";
+const STORAGE_KEY = "cocodona-crew-v12-hotel-bases";
 
 const stations = [
   { name: "Cottonwood Creek", mile: 7.4, in: "2026-05-04T07:30:00", out: "2026-05-04T07:35:00" },
@@ -44,29 +44,61 @@ const crewAccessibleAid = new Set([
   "Finish",
 ]);
 
+const hotelBases = {
+  anthem: {
+    label: "Start Base",
+    hotel: "Hampton Inn Anthem",
+    address: "42415 N 41st Dr, Anthem, AZ 85086",
+  },
+  prescott: {
+    label: "Prescott Base",
+    hotel: "Hotel St. Michael",
+    address: "205 W Gurley St, Prescott, AZ",
+  },
+  jerome: {
+    label: "Jerome Base",
+    hotel: "The Grand Hotel",
+    address: "200 Hill St, Jerome, AZ",
+  },
+  sedona: {
+    label: "Sedona Base",
+    hotel: "The Sky Rock Sedona",
+    address: "1200 AZ-89A, Sedona, AZ",
+  },
+  flagstaff: {
+    label: "Flagstaff Base",
+    hotel: "Little America Hotel",
+    address: "2515 E Butler Ave, Flagstaff, AZ",
+  },
+};
+
 const driveData = {
-  "Cottonwood Creek": { hotel: "Hotel St. Michael", distance: 58, drive: 75 },
-  "Lane Mountain": { hotel: "Hotel St. Michael", distance: 49, drive: 70 },
-  "Crown King": { hotel: "Hotel St. Michael", distance: 48, drive: 85 },
-  "Arrastra Creek": { hotel: "Hotel St. Michael", distance: 28, drive: 60 },
-  "Kamp Kipa": { hotel: "Hotel St. Michael", distance: 18, drive: 40 },
-  "Camp W": { hotel: "Hotel St. Michael", distance: 10, drive: 25 },
-  "Whiskey Row": { hotel: "Hotel St. Michael", distance: 0.2, drive: 5 },
-  "Watson Lake": { hotel: "Hotel St. Michael", distance: 5, drive: 15 },
-  "Fain Ranch": { hotel: "Hotel St. Michael", distance: 16, drive: 30 },
-  "Mingus Mountain": { hotel: "The Grand Hotel", distance: 21, drive: 45 },
-  Jerome: { hotel: "The Grand Hotel", distance: 0.2, drive: 5 },
-  "Dead Horse": { hotel: "The Sky Rock Sedona", distance: 20, drive: 35 },
-  "Deer Pass": { hotel: "The Sky Rock Sedona", distance: 26, drive: 45 },
-  "Sedona Posse Grounds": { hotel: "The Sky Rock Sedona", distance: 2, drive: 8 },
-  "Schnebly Hill": { hotel: "The Sky Rock Sedona", distance: 7, drive: 20 },
-  "Munds Park": { hotel: "Little America Hotel", distance: 22, drive: 30 },
-  "Kelly Canyon": { hotel: "Little America Hotel", distance: 14, drive: 25 },
-  "Fort Tuthill": { hotel: "Little America Hotel", distance: 7, drive: 15 },
-  "Walnut Canyon": { hotel: "Little America Hotel", distance: 10, drive: 25 },
-  "Wildcat Hill": { hotel: "Little America Hotel", distance: 9, drive: 20 },
-  "Trinity Heights": { hotel: "Little America Hotel", distance: 4, drive: 12 },
-  Finish: { hotel: "Little America Hotel", distance: 3, drive: 10 },
+  "Cottonwood Creek": { base: "anthem", distance: 32, drive: 45 },
+  "Lane Mountain": { base: "anthem", distance: 28, drive: 40 },
+  "Crown King": { base: "anthem", distance: 30, drive: 60 },
+
+  "Arrastra Creek": { base: "prescott", distance: 28, drive: 60 },
+  "Kamp Kipa": { base: "prescott", distance: 18, drive: 40 },
+  "Camp W": { base: "prescott", distance: 10, drive: 25 },
+  "Whiskey Row": { base: "prescott", distance: 0.2, drive: 5 },
+  "Watson Lake": { base: "prescott", distance: 5, drive: 15 },
+  "Fain Ranch": { base: "prescott", distance: 16, drive: 30 },
+
+  "Mingus Mountain": { base: "jerome", distance: 21, drive: 45 },
+  Jerome: { base: "jerome", distance: 0.2, drive: 5 },
+
+  "Dead Horse": { base: "sedona", distance: 20, drive: 35 },
+  "Deer Pass": { base: "sedona", distance: 26, drive: 45 },
+  "Sedona Posse Grounds": { base: "sedona", distance: 2, drive: 8 },
+  "Schnebly Hill": { base: "sedona", distance: 7, drive: 20 },
+
+  "Munds Park": { base: "flagstaff", distance: 22, drive: 30 },
+  "Kelly Canyon": { base: "flagstaff", distance: 14, drive: 25 },
+  "Fort Tuthill": { base: "flagstaff", distance: 7, drive: 15 },
+  "Walnut Canyon": { base: "flagstaff", distance: 10, drive: 25 },
+  "Wildcat Hill": { base: "flagstaff", distance: 9, drive: 20 },
+  "Trinity Heights": { base: "flagstaff", distance: 4, drive: 12 },
+  Finish: { base: "flagstaff", distance: 3, drive: 10 },
 };
 
 function buildEmptyRecords() {
@@ -115,10 +147,8 @@ function formatPlannedLine(station) {
 
   const day = inDate.toLocaleDateString([], { weekday: "long" });
   const date = `${inDate.getMonth() + 1}/${inDate.getDate()}`;
-  const inTime = inDate.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
-  const outTime = outDate
-    ? outDate.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })
-    : "—";
+  const inTime = time(station.in);
+  const outTime = outDate ? time(station.out) : "—";
 
   return `${day}, ${date}, Planned In: ${inTime} Out: ${outTime}`;
 }
@@ -127,6 +157,11 @@ function plannedRestMs(station) {
   if (!station?.in || !station?.out) return null;
   const ms = new Date(station.out) - new Date(station.in);
   return ms > 0 ? ms : null;
+}
+
+function showRestBadge(station) {
+  const ms = plannedRestMs(station);
+  return ms && ms > 30 * 60000;
 }
 
 function actualStopMs(record) {
@@ -247,7 +282,9 @@ function restBadgeStyle(rest) {
 }
 
 function getCrew(station) {
-  const d = driveData[station.name] || { hotel: "—", distance: "—", drive: 30 };
+  const d = driveData[station.name] || { base: "prescott", distance: "—", drive: 30 };
+  const base = hotelBases[d.base] || hotelBases.prescott;
+
   const eta = new Date(station.in);
   const arrive = new Date(eta.getTime() - 60 * 60000);
   const leave = new Date(arrive.getTime() - Number(d.drive || 30) * 60000);
@@ -258,7 +295,15 @@ function getCrew(station) {
   else if (now >= leave) status = "LEAVE NOW";
   else if (leave - now < 30 * 60000) status = "SOON";
 
-  return { ...d, arrive, leave, status };
+  return {
+    ...d,
+    baseLabel: base.label,
+    hotel: base.hotel,
+    hotelAddress: base.address,
+    arrive,
+    leave,
+    status,
+  };
 }
 
 function getNextDrive(current, next) {
@@ -268,9 +313,9 @@ function getNextDrive(current, next) {
   return { miles: miles.toFixed(1), drive };
 }
 
-function mapsLink(station, hotel) {
+function mapsLink(station, hotelAddress) {
   return `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(
-    hotel || ""
+    hotelAddress || ""
   )}&destination=${encodeURIComponent(station.name + " Cocodona")}`;
 }
 
@@ -480,11 +525,13 @@ export default function App() {
             Planned Rest: {durationShort(plannedRestMs(current))}
           </div>
 
-          <div style={restBadgeStyle(currentRest)}>
-            {currentRest.label}
-            {currentRest.actual ? ` · Actual ${durationShort(currentRest.actual)}` : ""}
-            {currentRest.delta ? ` · ${duration(currentRest.delta)} vs plan` : ""}
-          </div>
+          {showRestBadge(current) && (
+            <div style={restBadgeStyle(currentRest)}>
+              {currentRest.label}
+              {currentRest.actual ? ` · Actual ${durationShort(currentRest.actual)}` : ""}
+              {currentRest.delta ? ` · ${duration(currentRest.delta)} vs plan` : ""}
+            </div>
+          )}
 
           <div style={{ ...styles.grid2, marginTop: 12 }}>
             <button
@@ -514,33 +561,40 @@ export default function App() {
               <br />
               {fmt(records[currentIndex]?.out)}
             </div>
-            <div>
-              <strong>Hotel</strong>
-              <br />
-              {crew.hotel}
-            </div>
-            <div>
-              <strong>Hotel Drive</strong>
-              <br />
-              {crew.drive} min / {crew.distance} mi
-            </div>
-            <div>
-              <strong>Crew Leave</strong>
-              <br />
-              {time(crew.leave)}
-            </div>
-            <div>
-              <strong>Crew Arrive</strong>
-              <br />
-              {time(crew.arrive)}
-            </div>
+
+            {crewAccessibleAid.has(current.name) && (
+              <>
+                <div>
+                  <strong>Crew Base</strong>
+                  <br />
+                  {crew.baseLabel}
+                  <br />
+                  {crew.hotel}
+                </div>
+                <div>
+                  <strong>Hotel Drive</strong>
+                  <br />
+                  {crew.drive} min / {crew.distance} mi
+                </div>
+                <div>
+                  <strong>Crew Leave</strong>
+                  <br />
+                  {time(crew.leave)}
+                </div>
+                <div>
+                  <strong>Crew Arrive</strong>
+                  <br />
+                  {time(crew.arrive)}
+                </div>
+              </>
+            )}
           </div>
 
-          <div style={statusStyle(crew.status)}>{crew.status}</div>
+          {crewAccessibleAid.has(current.name) && <div style={statusStyle(crew.status)}>{crew.status}</div>}
 
           {crewAccessibleAid.has(current.name) && (
             <a
-              href={mapsLink(current, crew.hotel)}
+              href={mapsLink(current, crew.hotelAddress)}
               target="_blank"
               rel="noreferrer"
               style={{ display: "block", marginTop: 12, color: "#ef476f", fontWeight: 800 }}
@@ -607,24 +661,39 @@ export default function App() {
                     Planned Rest: {durationShort(plannedRestMs(s))}
                   </div>
 
-                  <div style={restBadgeStyle(r)}>
-                    {r.label}
-                    {r.actual ? ` · Actual ${durationShort(r.actual)}` : ""}
-                    {r.delta ? ` · ${duration(r.delta)} vs plan` : ""}
-                  </div>
+                  {showRestBadge(s) && (
+                    <div style={restBadgeStyle(r)}>
+                      {r.label}
+                      {r.actual ? ` · Actual ${durationShort(r.actual)}` : ""}
+                      {r.delta ? ` · ${duration(r.delta)} vs plan` : ""}
+                    </div>
+                  )}
 
                   <div style={accessStyle(s.name)}>{accessLabel(s.name)}</div>
 
                   <div style={{ fontSize: 13, marginTop: 8 }}>
-                    Hotel: {crewAccessibleAid.has(s.name) ? c.hotel : "No crew access"}
-                    <br />
-                    Hotel drive: {crewAccessibleAid.has(s.name) ? `${c.drive} min / ${c.distance} mi` : "—"}
-                    <br />
-                    Crew leave: {crewAccessibleAid.has(s.name) ? time(c.leave) : "—"} · arrive:{" "}
-                    {crewAccessibleAid.has(s.name) ? time(c.arrive) : "—"}
-                    <br />
-                    Status: {crewAccessibleAid.has(s.name) ? c.status : "NO CREW ACCESS"}
-                    <br />
+                    {crewAccessibleAid.has(s.name) && (
+                      <>
+                        Crew Base: {c.baseLabel}
+                        <br />
+                        Hotel: {c.hotel}
+                        <br />
+                        Hotel drive: {c.drive} min / {c.distance} mi
+                        <br />
+                        Crew leave: {time(c.leave)} · arrive: {time(c.arrive)}
+                        <br />
+                        Status: {c.status}
+                        <br />
+                      </>
+                    )}
+
+                    {!crewAccessibleAid.has(s.name) && (
+                      <>
+                        Status: NO CREW ACCESS
+                        <br />
+                      </>
+                    )}
+
                     {nextStation && (
                       <>
                         To next: {nextStation.name} · {stationDrive.drive} min / {stationDrive.miles} mi
@@ -634,7 +703,7 @@ export default function App() {
 
                   {crewAccessibleAid.has(s.name) && (
                     <a
-                      href={mapsLink(s, c.hotel)}
+                      href={mapsLink(s, c.hotelAddress)}
                       target="_blank"
                       rel="noreferrer"
                       style={{ display: "block", marginTop: 8, color: "#ef476f", fontWeight: 800 }}
