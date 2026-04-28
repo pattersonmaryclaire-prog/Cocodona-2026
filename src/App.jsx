@@ -684,9 +684,15 @@ export default function App() {
               </div>
             )}
 
-            <div style={{ ...infoPillStyle("#fde68a"), marginTop: 0 }}>
-              PACER: {current.pacer || "NO PACER SECTION"}
-            </div>
+           <div
+  style={{
+    ...infoPillStyle("#e0e7ff"),
+    marginTop: 0,
+    color: "#3730a3",
+  }}
+>
+  PACER: {current.pacer || "NO PACER SECTION"}
+</div>
 
             <div
               style={{
@@ -879,9 +885,15 @@ export default function App() {
                       </div>
                     )}
 
-                    <div style={{ ...infoPillStyle("#fde68a"), marginTop: 0 }}>
-                      PACER: {s.pacer || "NO PACER SECTION"}
-                    </div>
+                    <div
+  style={{
+    ...infoPillStyle("#e0e7ff"),
+    marginTop: 0,
+    color: "#3730a3",
+  }}
+>
+  PACER: {current.pacer || "NO PACER SECTION"}
+</div>
 
                     <div
                       style={{
