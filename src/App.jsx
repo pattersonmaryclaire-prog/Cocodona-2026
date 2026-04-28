@@ -7,28 +7,28 @@ const GOAL_FINISH = "2026-05-08T02:00:00";
 const FINISH_MILE = 253.3;
 
 const stationPlan = [
-  { name: "Cottonwood Creek", mile: 7.4, restMinutes: 5, weightFromPrevious: 1.05 },
-  { name: "Lane Mountain", mile: 32.5, restMinutes: 30, weightFromPrevious: 1.25 },
-  { name: "Crown King", mile: 36.6, restMinutes: 60, weightFromPrevious: 1.75 },
-  { name: "Arrastra Creek", mile: 51.0, restMinutes: 60, weightFromPrevious: 1.05 },
-  { name: "Kamp Kipa", mile: 60.8, restMinutes: 60, weightFromPrevious: 1.1 },
-  { name: "Camp W", mile: 67.4, restMinutes: 10, weightFromPrevious: 0.95 },
-  { name: "Whiskey Row", mile: 75.6, restMinutes: 120, weightFromPrevious: 0.9 },
-  { name: "Watson Lake", mile: 82.8, restMinutes: 10, weightFromPrevious: 0.9 },
-  { name: "Fain Ranch", mile: 96.5, restMinutes: 60, weightFromPrevious: 0.95 },
-  { name: "Mingus Mountain", mile: 107.2, restMinutes: 60, weightFromPrevious: 1.35 },
-  { name: "Jerome", mile: 124.2, restMinutes: 120, weightFromPrevious: 1.15 },
-  { name: "Dead Horse", mile: 132.9, restMinutes: 15, weightFromPrevious: 1.0 },
-  { name: "Deer Pass", mile: 146.9, restMinutes: 60, weightFromPrevious: 1.15 },
-  { name: "Sedona Posse Grounds", mile: 159.1, restMinutes: 120, weightFromPrevious: 1.3 },
-  { name: "Schnebly Hill", mile: 176.1, restMinutes: 60, weightFromPrevious: 1.4 },
-  { name: "Munds Park", mile: 190.0, restMinutes: 60, weightFromPrevious: 1.05 },
-  { name: "Kelly Canyon", mile: 202.7, restMinutes: 10, weightFromPrevious: 1.0 },
-  { name: "Fort Tuthill", mile: 211.0, restMinutes: 120, weightFromPrevious: 1.05 },
-  { name: "Walnut Canyon", mile: 227.1, restMinutes: 60, weightFromPrevious: 1.2 },
-  { name: "Wildcat Hill", mile: 234.1, restMinutes: 30, weightFromPrevious: 1.15 },
-  { name: "Trinity Heights", mile: 249.4, restMinutes: 5, weightFromPrevious: 1.1 },
-  { name: "Finish", mile: 253.3, restMinutes: 0, weightFromPrevious: 1.0 },
+  { name: "Cottonwood Creek", mile: 7.4, restMinutes: 5, weightFromPrevious: 1.05, pacer: "NO PACER SECTION" },
+  { name: "Lane Mountain", mile: 32.5, restMinutes: 30, weightFromPrevious: 1.25, pacer: "NO PACER SECTION" },
+  { name: "Crown King", mile: 36.6, restMinutes: 60, weightFromPrevious: 1.75, pacer: "NO PACER SECTION" },
+  { name: "Arrastra Creek", mile: 51.0, restMinutes: 60, weightFromPrevious: 1.05, pacer: "NO PACER SECTION" },
+  { name: "Kamp Kipa", mile: 60.8, restMinutes: 60, weightFromPrevious: 1.1, pacer: "NO PACER SECTION" },
+  { name: "Camp W", mile: 67.4, restMinutes: 10, weightFromPrevious: 0.95, pacer: "NO PACER SECTION" },
+  { name: "Whiskey Row", mile: 75.6, restMinutes: 120, weightFromPrevious: 0.9, pacer: "NO PACER SECTION" },
+  { name: "Watson Lake", mile: 82.8, restMinutes: 10, weightFromPrevious: 0.9, pacer: "Lin / Ben" },
+  { name: "Fain Ranch", mile: 96.5, restMinutes: 60, weightFromPrevious: 0.95, pacer: "Lin" },
+  { name: "Mingus Mountain", mile: 107.2, restMinutes: 60, weightFromPrevious: 1.35, pacer: "Ben" },
+  { name: "Jerome", mile: 124.2, restMinutes: 120, weightFromPrevious: 1.15, pacer: "Ben" },
+  { name: "Dead Horse", mile: 132.9, restMinutes: 15, weightFromPrevious: 1.0, pacer: "Lin" },
+  { name: "Deer Pass", mile: 146.9, restMinutes: 60, weightFromPrevious: 1.15, pacer: "Ben" },
+  { name: "Sedona Posse Grounds", mile: 159.1, restMinutes: 120, weightFromPrevious: 1.3, pacer: "Ben" },
+  { name: "Schnebly Hill", mile: 176.1, restMinutes: 60, weightFromPrevious: 1.4, pacer: "Joe" },
+  { name: "Munds Park", mile: 190.0, restMinutes: 60, weightFromPrevious: 1.05, pacer: "NO PACER SECTION" },
+  { name: "Kelly Canyon", mile: 202.7, restMinutes: 10, weightFromPrevious: 1.0, pacer: "Ben" },
+  { name: "Fort Tuthill", mile: 211.0, restMinutes: 120, weightFromPrevious: 1.05, pacer: "Ben" },
+  { name: "Walnut Canyon", mile: 227.1, restMinutes: 60, weightFromPrevious: 1.2, pacer: "Lin" },
+  { name: "Wildcat Hill", mile: 234.1, restMinutes: 30, weightFromPrevious: 1.15, pacer: "Joe C" },
+  { name: "Trinity Heights", mile: 249.4, restMinutes: 5, weightFromPrevious: 1.1, pacer: "NO PACER SECTION" },
+  { name: "Finish", mile: 253.3, restMinutes: 0, weightFromPrevious: 1.0, pacer: "NO PACER SECTION" },
 ];
 
 function roundToFiveMinutes(date) {
@@ -64,11 +64,14 @@ function generateStations() {
     const weightedMiles = segmentMiles * station.weightFromPrevious;
 
     return {
-      ...station,
-      previousMile,
-      segmentMiles,
-      weightedMiles,
-    };
+  name: station.name,
+  mile: station.mile,
+  restMinutes: station.restMinutes,
+  weightFromPrevious: station.weightFromPrevious,
+  pacer: station.pacer || "NO PACER SECTION",
+  in: localDateString(plannedInDate),
+  out: plannedOutDate ? localDateString(plannedOutDate) : "",
+};
   });
 
   const totalWeightedMiles = weightedSegments.reduce(
@@ -582,12 +585,26 @@ export default function App() {
           <div style={accessStyle(current.name)}>{accessLabel(current.name)}</div>
 
           <div style={{ marginTop: 10 }}>
-            <strong>Randi Planned</strong>
-            <br />
-            {formatPlannedLine(current)}
-            <br />
-            Planned Rest: {durationShort(plannedRestMs(current))}
-          </div>
+  <strong>Randi Planned</strong>
+  <br />
+  {formatPlannedLine(current)}
+  <br />
+  Planned Rest: {durationShort(plannedRestMs(current))}
+</div>
+
+<div
+  style={{
+    marginTop: 10,
+    display: "inline-block",
+    padding: "6px 10px",
+    borderRadius: 999,
+    background: "#fde68a",
+    fontWeight: 900,
+    fontSize: 12,
+  }}
+>
+  PACER: {current.pacer || "NO PACER SECTION"}
+</div>
 
           {showRestBadge(current) && (
             <div style={restBadgeStyle(currentRest)}>
