@@ -75,21 +75,22 @@ const hotelBases = {
 const driveData = {
   "Cottonwood Creek": { base: "anthem", distance: 32, drive: 45 },
   "Lane Mountain": { base: "anthem", distance: 28, drive: 40 },
-  "Crown King": { "Crown King": {
-  base: "anthem",
-  distance: 54,
-  drive: 125,
-  specialRoute: true,
-  routeLabel: "Anthem → Bumble Bee Ranch pass stop → Crown King",
-  passStopName: "Bumble Bee Ranch",
-  passStopAddress: "23925 Bumble Bee Rd, Mayer, AZ",
-  finalAidAddress: "7219 Main St, Crown King, AZ",
-  leg1Drive: 35,
-  passStopBuffer: 75,
-  leg2Drive: 75,
-  instructions:
-    "Go to Bumble Bee Ranch first to obtain parking pass. Then continue via fire roads to Crown King. Do not route directly to Crown King without pass stop.",
-},
+
+  "Crown King": {
+    base: "anthem",
+    distance: 54,
+    drive: 125,
+    specialRoute: true,
+    routeLabel: "Anthem → Bumble Bee Ranch pass stop → Crown King",
+    passStopName: "Bumble Bee Ranch",
+    passStopAddress: "23925 Bumble Bee Rd, Mayer, AZ",
+    finalAidAddress: "7219 Main St, Crown King, AZ",
+    leg1Drive: 35,
+    passStopBuffer: 75,
+    leg2Drive: 75,
+    instructions:
+      "Go to Bumble Bee Ranch first to obtain parking pass. Then continue via fire roads to Crown King. Do not route directly to Crown King without pass stop.",
+  },
 
   "Arrastra Creek": { base: "prescott", distance: 28, drive: 60 },
   "Kamp Kipa": { base: "prescott", distance: 18, drive: 40 },
