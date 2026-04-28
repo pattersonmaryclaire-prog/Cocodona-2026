@@ -1,31 +1,80 @@
 import React, { useEffect, useMemo, useState } from "react";
 
-const STORAGE_KEY = "cocodona-crew-v12-hotel-bases";
+const STORAGE_KEY = "cocodona-crew-v13-generated-plan-a";
 
-const stations = [
-  { name: "Cottonwood Creek", mile: 7.4, in: "2026-05-04T07:30:00", out: "2026-05-04T07:35:00" },
-  { name: "Lane Mountain", mile: 32.5, in: "2026-05-04T14:00:00", out: "2026-05-04T14:30:00" },
-  { name: "Crown King", mile: 36.6, in: "2026-05-04T18:00:00", out: "2026-05-04T19:00:00" },
-  { name: "Arrastra Creek", mile: 51.0, in: "2026-05-04T23:00:00", out: "2026-05-05T00:00:00" },
-  { name: "Kamp Kipa", mile: 60.8, in: "2026-05-05T04:00:00", out: "2026-05-05T05:00:00" },
-  { name: "Camp W", mile: 67.4, in: "2026-05-05T06:00:00", out: "2026-05-05T06:10:00" },
-  { name: "Whiskey Row", mile: 75.6, in: "2026-05-05T08:30:00", out: "2026-05-05T10:30:00" },
-  { name: "Watson Lake", mile: 82.8, in: "2026-05-05T13:00:00", out: "2026-05-05T13:10:00" },
-  { name: "Fain Ranch", mile: 96.5, in: "2026-05-05T16:00:00", out: "2026-05-05T17:00:00" },
-  { name: "Mingus Mountain", mile: 107.2, in: "2026-05-05T21:00:00", out: "2026-05-05T22:00:00" },
-  { name: "Jerome", mile: 124.2, in: "2026-05-06T07:00:00", out: "2026-05-06T09:00:00" },
-  { name: "Dead Horse", mile: 132.9, in: "2026-05-06T12:00:00", out: "2026-05-06T12:15:00" },
-  { name: "Deer Pass", mile: 146.9, in: "2026-05-06T16:00:00", out: "2026-05-06T17:00:00" },
-  { name: "Sedona Posse Grounds", mile: 159.1, in: "2026-05-06T22:30:00", out: "2026-05-07T00:30:00" },
-  { name: "Schnebly Hill", mile: 176.1, in: "2026-05-07T07:00:00", out: "2026-05-07T08:00:00" },
-  { name: "Munds Park", mile: 190.0, in: "2026-05-07T12:00:00", out: "2026-05-07T13:00:00" },
-  { name: "Kelly Canyon", mile: 202.7, in: "2026-05-07T16:00:00", out: "2026-05-07T16:10:00" },
-  { name: "Fort Tuthill", mile: 211.0, in: "2026-05-07T20:30:00", out: "2026-05-07T22:30:00" },
-  { name: "Walnut Canyon", mile: 227.1, in: "2026-05-08T02:30:00", out: "2026-05-08T03:30:00" },
-  { name: "Wildcat Hill", mile: 234.1, in: "2026-05-08T06:30:00", out: "2026-05-08T07:00:00" },
-  { name: "Trinity Heights", mile: 249.4, in: "2026-05-08T13:00:00", out: "2026-05-08T13:05:00" },
-  { name: "Finish", mile: 253.3, in: "2026-05-08T14:00:00", out: "" },
+const RACE_START = "2026-05-04T05:00:00";
+const GOAL_FINISH = "2026-05-08T02:00:00";
+const FINISH_MILE = 253.3;
+
+const stationPlan = [
+  { name: "Cottonwood Creek", mile: 7.4, restMinutes: 5 },
+  { name: "Lane Mountain", mile: 32.5, restMinutes: 30 },
+  { name: "Crown King", mile: 36.6, restMinutes: 60 },
+  { name: "Arrastra Creek", mile: 51.0, restMinutes: 60 },
+  { name: "Kamp Kipa", mile: 60.8, restMinutes: 60 },
+  { name: "Camp W", mile: 67.4, restMinutes: 10 },
+  { name: "Whiskey Row", mile: 75.6, restMinutes: 120 },
+  { name: "Watson Lake", mile: 82.8, restMinutes: 10 },
+  { name: "Fain Ranch", mile: 96.5, restMinutes: 60 },
+  { name: "Mingus Mountain", mile: 107.2, restMinutes: 60 },
+  { name: "Jerome", mile: 124.2, restMinutes: 120 },
+  { name: "Dead Horse", mile: 132.9, restMinutes: 15 },
+  { name: "Deer Pass", mile: 146.9, restMinutes: 60 },
+  { name: "Sedona Posse Grounds", mile: 159.1, restMinutes: 120 },
+  { name: "Schnebly Hill", mile: 176.1, restMinutes: 60 },
+  { name: "Munds Park", mile: 190.0, restMinutes: 60 },
+  { name: "Kelly Canyon", mile: 202.7, restMinutes: 10 },
+  { name: "Fort Tuthill", mile: 211.0, restMinutes: 120 },
+  { name: "Walnut Canyon", mile: 227.1, restMinutes: 60 },
+  { name: "Wildcat Hill", mile: 234.1, restMinutes: 30 },
+  { name: "Trinity Heights", mile: 249.4, restMinutes: 5 },
+  { name: "Finish", mile: 253.3, restMinutes: 0 },
 ];
+
+function roundToFiveMinutes(date) {
+  const rounded = new Date(date);
+  const mins = rounded.getMinutes();
+  const roundedMins = Math.round(mins / 5) * 5;
+  rounded.setMinutes(roundedMins, 0, 0);
+  return rounded;
+}
+
+function localDateString(date) {
+  const pad = (n) => String(n).padStart(2, "0");
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(
+    date.getHours()
+  )}:${pad(date.getMinutes())}:00`;
+}
+
+function generateStations() {
+  const start = new Date(RACE_START);
+  const finish = new Date(GOAL_FINISH);
+  const totalMs = finish - start;
+
+  return stationPlan.map((s) => {
+    let plannedInDate;
+
+    if (s.name === "Finish") {
+      plannedInDate = finish;
+    } else {
+      const progress = s.mile / FINISH_MILE;
+      plannedInDate = roundToFiveMinutes(new Date(start.getTime() + totalMs * progress));
+    }
+
+    const plannedOutDate =
+      s.restMinutes > 0
+        ? new Date(plannedInDate.getTime() + s.restMinutes * 60000)
+        : null;
+
+    return {
+      ...s,
+      in: localDateString(plannedInDate),
+      out: plannedOutDate ? localDateString(plannedOutDate) : "",
+    };
+  });
+}
+
+const stations = generateStations();
 
 const crewAccessibleAid = new Set([
   "Crown King",
@@ -145,8 +194,7 @@ function duration(ms) {
 
 function durationShort(ms) {
   if (ms === null || ms === undefined || Number.isNaN(ms)) return "—";
-  const abs = Math.abs(ms);
-  const mins = Math.round(abs / 60000);
+  const mins = Math.round(Math.abs(ms) / 60000);
   const h = Math.floor(mins / 60);
   const m = mins % 60;
   if (h && m) return `${h}h ${m}m`;
@@ -158,14 +206,10 @@ function formatPlannedLine(station) {
   if (!station?.in) return "—";
 
   const inDate = new Date(station.in);
-  const outDate = station.out ? new Date(station.out) : null;
-
   const day = inDate.toLocaleDateString([], { weekday: "long" });
   const date = `${inDate.getMonth() + 1}/${inDate.getDate()}`;
-  const inTime = time(station.in);
-  const outTime = outDate ? time(station.out) : "—";
 
-  return `${day}, ${date}, Planned In: ${inTime} Out: ${outTime}`;
+  return `${day}, ${date}, Planned In: ${time(station.in)} Out: ${time(station.out)}`;
 }
 
 function plannedRestMs(station) {
@@ -190,59 +234,24 @@ function restStatus(station, record) {
   const actual = actualStopMs(record);
 
   if (!planned) {
-    return {
-      label: "No planned rest",
-      bg: "#E9E2D8",
-      color: "#6B5B4D",
-      delta: null,
-      actual,
-      planned,
-    };
+    return { label: "No planned rest", bg: "#E9E2D8", color: "#6B5B4D", delta: null, actual };
   }
 
   if (!actual) {
-    return {
-      label: "Planned rest",
-      bg: "#F8E7B5",
-      color: "#6E5A00",
-      delta: null,
-      actual,
-      planned,
-    };
+    return { label: "Planned rest", bg: "#F8E7B5", color: "#6E5A00", delta: null, actual };
   }
 
   const delta = actual - planned;
 
   if (delta <= 0) {
-    return {
-      label: "On / under rest",
-      bg: "#dcfce7",
-      color: "#166534",
-      delta,
-      actual,
-      planned,
-    };
+    return { label: "On / under rest", bg: "#dcfce7", color: "#166534", delta, actual };
   }
 
   if (delta <= 15 * 60000) {
-    return {
-      label: "Slight over rest",
-      bg: "#ffd60a",
-      color: "#3B2432",
-      delta,
-      actual,
-      planned,
-    };
+    return { label: "Slight over rest", bg: "#ffd60a", color: "#3B2432", delta, actual };
   }
 
-  return {
-    label: "Bleeding time",
-    bg: "#fee2e2",
-    color: "#991b1b",
-    delta,
-    actual,
-    planned,
-  };
+  return { label: "Bleeding time", bg: "#fee2e2", color: "#991b1b", delta, actual };
 }
 
 function accessLabel(name) {
@@ -382,7 +391,7 @@ export default function App() {
       if (saved?.records) setRecords(saved.records);
       if (saved?.tab) setTab(saved.tab);
     } catch {}
-  }, []);
+  }, [sharedData]);
 
   useEffect(() => {
     if (readOnly) return;
@@ -399,7 +408,7 @@ export default function App() {
   const currentRest = restStatus(current, records[currentIndex]);
 
   const prediction = useMemo(() => {
-    const start = new Date("2026-05-04T05:00:00");
+    const start = new Date(RACE_START);
     const finish = stations[stations.length - 1];
 
     let lastActualIndex = -1;
@@ -616,32 +625,32 @@ export default function App() {
               </>
             )}
           </div>
-{crew.specialRoute && (
-  <div
-    style={{
-      marginTop: 12,
-      fontSize: 13,
-      background: "#fff",
-      padding: 10,
-      borderRadius: 12,
-      border: "1px solid #ef476f",
-    }}
-  >
-    <strong>Special Route</strong>
-    <br />
-    {crew.routeLabel}
-    <br />
-    Pass Stop: {crew.passStopName}
-    <br />
-    Pass Stop ETA: {crew.passStopArrive ? time(crew.passStopArrive) : "—"}
-    <br />
-    Depart Pass Stop: {crew.passStopDepart ? time(crew.passStopDepart) : "—"}
-    <br />
-    <span style={{ color: "#991b1b", fontWeight: 800 }}>
-      {crew.instructions}
-    </span>
-  </div>
-)}
+
+          {crew.specialRoute && (
+            <div
+              style={{
+                marginTop: 12,
+                fontSize: 13,
+                background: "#fff",
+                padding: 10,
+                borderRadius: 12,
+                border: "1px solid #ef476f",
+              }}
+            >
+              <strong>Special Route</strong>
+              <br />
+              {crew.routeLabel}
+              <br />
+              Pass Stop: {crew.passStopName}
+              <br />
+              Pass Stop ETA: {crew.passStopArrive ? time(crew.passStopArrive) : "—"}
+              <br />
+              Depart Pass Stop: {crew.passStopDepart ? time(crew.passStopDepart) : "—"}
+              <br />
+              <span style={{ color: "#991b1b", fontWeight: 800 }}>{crew.instructions}</span>
+            </div>
+          )}
+
           {crewAccessibleAid.has(current.name) && <div style={statusStyle(crew.status)}>{crew.status}</div>}
 
           {crewAccessibleAid.has(current.name) && (
@@ -739,6 +748,21 @@ export default function App() {
                       </>
                     )}
 
+                    {c.specialRoute && (
+                      <>
+                        Special Route: {c.routeLabel}
+                        <br />
+                        Pass Stop: {c.passStopName}
+                        <br />
+                        Pass Stop ETA: {c.passStopArrive ? time(c.passStopArrive) : "—"}
+                        <br />
+                        Depart Pass Stop: {c.passStopDepart ? time(c.passStopDepart) : "—"}
+                        <br />
+                        {c.instructions}
+                        <br />
+                      </>
+                    )}
+
                     {!crewAccessibleAid.has(s.name) && (
                       <>
                         Status: NO CREW ACCESS
@@ -819,7 +843,7 @@ export default function App() {
             {prediction.projectedHours ? `${prediction.projectedHours.toFixed(1)} hrs` : "—"}
             <br />
             <br />
-            <strong>Trend vs Planned Finish:</strong>
+            <strong>Trend vs Goal Finish:</strong>
             <br />
             {duration(prediction.deltaVsPlan)}
             <br />
