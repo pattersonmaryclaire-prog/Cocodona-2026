@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 
-const STORAGE_KEY = "cocodona-crew-v14-pacer-shoes-projected";
+const STORAGE_KEY = "cocodona-crew-v15-badge-row";
 
 const RACE_START = "2026-05-04T05:00:00";
 const GOAL_FINISH = "2026-05-08T02:00:00";
@@ -15,16 +15,16 @@ const stationPlan = [
   { name: "Camp W", mile: 67.4, restMinutes: 10, weightFromPrevious: 0.95, pacer: "NO PACER SECTION", shoes: "NO SHOE CHANGE" },
   { name: "Whiskey Row", mile: 75.6, restMinutes: 120, weightFromPrevious: 0.9, pacer: "NO PACER SECTION", shoes: "ROAD SHOES" },
   { name: "Watson Lake", mile: 82.8, restMinutes: 10, weightFromPrevious: 0.9, pacer: "Lin / Ben", shoes: "NO SHOE CHANGE" },
-  { name: "Fain Ranch", mile: 96.5, restMinutes: 60, weightFromPrevious: 0.95, pacer: "Lin", shoes: "TRAIL SHOES" },
+  { name: "Fain Ranch", mile: 96.5, restMinutes: 60, weightFromPrevious: 0.95, pacer: "Lin", shoes: "NO SHOE CHANGE" },
   { name: "Mingus Mountain", mile: 107.2, restMinutes: 60, weightFromPrevious: 1.35, pacer: "Ben", shoes: "NO SHOE CHANGE" },
   { name: "Jerome", mile: 124.2, restMinutes: 120, weightFromPrevious: 1.15, pacer: "Ben", shoes: "ROAD SHOES" },
   { name: "Dead Horse", mile: 132.9, restMinutes: 15, weightFromPrevious: 1.0, pacer: "Lin", shoes: "TRAIL SHOES" },
   { name: "Deer Pass", mile: 146.9, restMinutes: 60, weightFromPrevious: 1.15, pacer: "Ben", shoes: "NO SHOE CHANGE" },
   { name: "Sedona Posse Grounds", mile: 159.1, restMinutes: 120, weightFromPrevious: 1.3, pacer: "Ben", shoes: "NO SHOE CHANGE" },
   { name: "Schnebly Hill", mile: 176.1, restMinutes: 60, weightFromPrevious: 1.4, pacer: "Joe", shoes: "ROAD SHOES" },
-  { name: "Munds Park", mile: 190.0, restMinutes: 60, weightFromPrevious: 1.05, pacer: "NO PACER SECTION", shoes: "NO SHOE CHANGE" },
+  { name: "Munds Park", mile: 190.0, restMinutes: 60, weightFromPrevious: 1.05, pacer: "NO PACER SECTION", shoes: "ROAD SHOES" },
   { name: "Kelly Canyon", mile: 202.7, restMinutes: 10, weightFromPrevious: 1.0, pacer: "Ben", shoes: "NO SHOE CHANGE" },
-  { name: "Fort Tuthill", mile: 211.0, restMinutes: 120, weightFromPrevious: 1.05, pacer: "Ben", shoes: "TRAIL SHOES" },
+  { name: "Fort Tuthill", mile: 211.0, restMinutes: 120, weightFromPrevious: 1.05, pacer: "Ben", shoes: "ROAD SHOES" },
   { name: "Walnut Canyon", mile: 227.1, restMinutes: 60, weightFromPrevious: 1.2, pacer: "Lin", shoes: "NO SHOE CHANGE" },
   { name: "Wildcat Hill", mile: 234.1, restMinutes: 30, weightFromPrevious: 1.15, pacer: "Joe C", shoes: "ROAD SHOES" },
   { name: "Trinity Heights", mile: 249.4, restMinutes: 5, weightFromPrevious: 1.1, pacer: "NO PACER SECTION", shoes: "NO SHOE CHANGE" },
@@ -62,7 +62,6 @@ function generateStations() {
     const previousMile = index === 0 ? 0 : stationPlan[index - 1].mile;
     const segmentMiles = station.mile - previousMile;
     const weightedMiles = segmentMiles * station.weightFromPrevious;
-
     return { ...station, previousMile, segmentMiles, weightedMiles };
   });
 
@@ -75,6 +74,7 @@ function generateStations() {
 
   return weightedSegments.map((station) => {
     const segmentMovingMs = (station.weightedMiles / totalWeightedMiles) * totalMovingMs;
+
     const plannedInDate =
       station.name === "Finish"
         ? finish
@@ -641,6 +641,13 @@ export default function App() {
       border: "1px solid #e5d3b3",
       fontSize: 13,
     },
+    badgeRow: {
+      display: "flex",
+      flexWrap: "wrap",
+      gap: 8,
+      marginTop: 10,
+      alignItems: "center",
+    },
   };
 
   return (
@@ -656,8 +663,6 @@ export default function App() {
           <h2 style={{ margin: 0 }}>{current.name}</h2>
           <div style={styles.small}>Mile {current.mile}</div>
 
-          <div style={accessStyle(current.name)}>{accessLabel(current.name)}</div>
-
           <div style={{ marginTop: 10 }}>
             <strong>Randi Planned</strong>
             <br />
@@ -666,12 +671,31 @@ export default function App() {
             Planned Rest: {durationShort(plannedRestMs(current))}
           </div>
 
-          <div style={infoPillStyle("#fde68a")}>
-            PACER: {current.pacer || "NO PACER SECTION"}
-          </div>
+          <div style={styles.badgeRow}>
+            <div style={{ ...accessStyle(current.name), marginTop: 0 }}>
+              {accessLabel(current.name)}
+            </div>
 
-          <div style={infoPillStyle(current.shoes === "NO SHOE CHANGE" ? "#E9E2D8" : "#bfdbfe")}>
-            SHOES: {current.shoes || "NO SHOE CHANGE"}
+            {showRestBadge(current) && (
+              <div style={{ ...restBadgeStyle(currentRest), marginTop: 0 }}>
+                {currentRest.label}
+                {currentRest.actual ? ` · Actual ${durationShort(currentRest.actual)}` : ""}
+                {currentRest.delta ? ` · ${duration(currentRest.delta)} vs plan` : ""}
+              </div>
+            )}
+
+            <div style={{ ...infoPillStyle("#fde68a"), marginTop: 0 }}>
+              PACER: {current.pacer || "NO PACER SECTION"}
+            </div>
+
+            <div
+              style={{
+                ...infoPillStyle(current.shoes === "NO SHOE CHANGE" ? "#E9E2D8" : "#bfdbfe"),
+                marginTop: 0,
+              }}
+            >
+              SHOES: {current.shoes || "NO SHOE CHANGE"}
+            </div>
           </div>
 
           <div style={styles.projectionBox}>
@@ -683,14 +707,6 @@ export default function App() {
             <br />
             Δ vs Plan: {duration(currentProjected?.deltaMs)}
           </div>
-
-          {showRestBadge(current) && (
-            <div style={restBadgeStyle(currentRest)}>
-              {currentRest.label}
-              {currentRest.actual ? ` · Actual ${durationShort(currentRest.actual)}` : ""}
-              {currentRest.delta ? ` · ${duration(currentRest.delta)} vs plan` : ""}
-            </div>
-          )}
 
           <div style={{ ...styles.grid2, marginTop: 12 }}>
             <button
@@ -850,12 +866,31 @@ export default function App() {
                     Planned Rest: {durationShort(plannedRestMs(s))}
                   </div>
 
-                  <div style={infoPillStyle("#fde68a")}>
-                    PACER: {s.pacer || "NO PACER SECTION"}
-                  </div>
+                  <div style={styles.badgeRow}>
+                    <div style={{ ...accessStyle(s.name), marginTop: 0 }}>
+                      {accessLabel(s.name)}
+                    </div>
 
-                  <div style={infoPillStyle(s.shoes === "NO SHOE CHANGE" ? "#E9E2D8" : "#bfdbfe")}>
-                    SHOES: {s.shoes || "NO SHOE CHANGE"}
+                    {showRestBadge(s) && (
+                      <div style={{ ...restBadgeStyle(r), marginTop: 0 }}>
+                        {r.label}
+                        {r.actual ? ` · Actual ${durationShort(r.actual)}` : ""}
+                        {r.delta ? ` · ${duration(r.delta)} vs plan` : ""}
+                      </div>
+                    )}
+
+                    <div style={{ ...infoPillStyle("#fde68a"), marginTop: 0 }}>
+                      PACER: {s.pacer || "NO PACER SECTION"}
+                    </div>
+
+                    <div
+                      style={{
+                        ...infoPillStyle(s.shoes === "NO SHOE CHANGE" ? "#E9E2D8" : "#bfdbfe"),
+                        marginTop: 0,
+                      }}
+                    >
+                      SHOES: {s.shoes || "NO SHOE CHANGE"}
+                    </div>
                   </div>
 
                   <div style={styles.projectionBox}>
@@ -867,16 +902,6 @@ export default function App() {
                     <br />
                     Δ vs Plan: {duration(projected?.deltaMs)}
                   </div>
-
-                  {showRestBadge(s) && (
-                    <div style={restBadgeStyle(r)}>
-                      {r.label}
-                      {r.actual ? ` · Actual ${durationShort(r.actual)}` : ""}
-                      {r.delta ? ` · ${duration(r.delta)} vs plan` : ""}
-                    </div>
-                  )}
-
-                  <div style={accessStyle(s.name)}>{accessLabel(s.name)}</div>
 
                   <div style={{ fontSize: 13, marginTop: 8 }}>
                     {crewAccessibleAid.has(s.name) && (
