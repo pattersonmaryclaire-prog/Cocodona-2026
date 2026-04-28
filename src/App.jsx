@@ -1,34 +1,34 @@
 import React, { useEffect, useMemo, useState } from "react";
 
-const STORAGE_KEY = "cocodona-crew-v13-generated-plan-a";
+const STORAGE_KEY = "cocodona-crew-v14-pacer-shoes-projected";
 
 const RACE_START = "2026-05-04T05:00:00";
 const GOAL_FINISH = "2026-05-08T02:00:00";
 const FINISH_MILE = 253.3;
 
 const stationPlan = [
-  { name: "Cottonwood Creek", mile: 7.4, restMinutes: 5, weightFromPrevious: 1.05, pacer: "NO PACER SECTION" },
-  { name: "Lane Mountain", mile: 32.5, restMinutes: 30, weightFromPrevious: 1.25, pacer: "NO PACER SECTION" },
-  { name: "Crown King", mile: 36.6, restMinutes: 60, weightFromPrevious: 1.75, pacer: "NO PACER SECTION" },
-  { name: "Arrastra Creek", mile: 51.0, restMinutes: 60, weightFromPrevious: 1.05, pacer: "NO PACER SECTION" },
-  { name: "Kamp Kipa", mile: 60.8, restMinutes: 60, weightFromPrevious: 1.1, pacer: "NO PACER SECTION" },
-  { name: "Camp W", mile: 67.4, restMinutes: 10, weightFromPrevious: 0.95, pacer: "NO PACER SECTION" },
-  { name: "Whiskey Row", mile: 75.6, restMinutes: 120, weightFromPrevious: 0.9, pacer: "NO PACER SECTION" },
-  { name: "Watson Lake", mile: 82.8, restMinutes: 10, weightFromPrevious: 0.9, pacer: "Lin / Ben" },
-  { name: "Fain Ranch", mile: 96.5, restMinutes: 60, weightFromPrevious: 0.95, pacer: "Lin" },
-  { name: "Mingus Mountain", mile: 107.2, restMinutes: 60, weightFromPrevious: 1.35, pacer: "Ben" },
-  { name: "Jerome", mile: 124.2, restMinutes: 120, weightFromPrevious: 1.15, pacer: "Ben" },
-  { name: "Dead Horse", mile: 132.9, restMinutes: 15, weightFromPrevious: 1.0, pacer: "Lin" },
-  { name: "Deer Pass", mile: 146.9, restMinutes: 60, weightFromPrevious: 1.15, pacer: "Ben" },
-  { name: "Sedona Posse Grounds", mile: 159.1, restMinutes: 120, weightFromPrevious: 1.3, pacer: "Ben" },
-  { name: "Schnebly Hill", mile: 176.1, restMinutes: 60, weightFromPrevious: 1.4, pacer: "Joe" },
-  { name: "Munds Park", mile: 190.0, restMinutes: 60, weightFromPrevious: 1.05, pacer: "NO PACER SECTION" },
-  { name: "Kelly Canyon", mile: 202.7, restMinutes: 10, weightFromPrevious: 1.0, pacer: "Ben" },
-  { name: "Fort Tuthill", mile: 211.0, restMinutes: 120, weightFromPrevious: 1.05, pacer: "Ben" },
-  { name: "Walnut Canyon", mile: 227.1, restMinutes: 60, weightFromPrevious: 1.2, pacer: "Lin" },
-  { name: "Wildcat Hill", mile: 234.1, restMinutes: 30, weightFromPrevious: 1.15, pacer: "Joe C" },
-  { name: "Trinity Heights", mile: 249.4, restMinutes: 5, weightFromPrevious: 1.1, pacer: "NO PACER SECTION" },
-  { name: "Finish", mile: 253.3, restMinutes: 0, weightFromPrevious: 1.0, pacer: "NO PACER SECTION" },
+  { name: "Cottonwood Creek", mile: 7.4, restMinutes: 5, weightFromPrevious: 1.05, pacer: "NO PACER SECTION", shoes: "NO SHOE CHANGE" },
+  { name: "Lane Mountain", mile: 32.5, restMinutes: 30, weightFromPrevious: 1.25, pacer: "NO PACER SECTION", shoes: "NO SHOE CHANGE" },
+  { name: "Crown King", mile: 36.6, restMinutes: 60, weightFromPrevious: 1.75, pacer: "NO PACER SECTION", shoes: "NO SHOE CHANGE" },
+  { name: "Arrastra Creek", mile: 51.0, restMinutes: 60, weightFromPrevious: 1.05, pacer: "NO PACER SECTION", shoes: "NO SHOE CHANGE" },
+  { name: "Kamp Kipa", mile: 60.8, restMinutes: 60, weightFromPrevious: 1.1, pacer: "NO PACER SECTION", shoes: "NO SHOE CHANGE" },
+  { name: "Camp W", mile: 67.4, restMinutes: 10, weightFromPrevious: 0.95, pacer: "NO PACER SECTION", shoes: "NO SHOE CHANGE" },
+  { name: "Whiskey Row", mile: 75.6, restMinutes: 120, weightFromPrevious: 0.9, pacer: "NO PACER SECTION", shoes: "ROAD SHOES" },
+  { name: "Watson Lake", mile: 82.8, restMinutes: 10, weightFromPrevious: 0.9, pacer: "Lin / Ben", shoes: "NO SHOE CHANGE" },
+  { name: "Fain Ranch", mile: 96.5, restMinutes: 60, weightFromPrevious: 0.95, pacer: "Lin", shoes: "NO SHOE CHANGE" },
+  { name: "Mingus Mountain", mile: 107.2, restMinutes: 60, weightFromPrevious: 1.35, pacer: "Ben", shoes: "NO SHOE CHANGE" },
+  { name: "Jerome", mile: 124.2, restMinutes: 120, weightFromPrevious: 1.15, pacer: "Ben", shoes: "ROAD SHOES" },
+  { name: "Dead Horse", mile: 132.9, restMinutes: 15, weightFromPrevious: 1.0, pacer: "Lin", shoes: "TRAIL SHOES" },
+  { name: "Deer Pass", mile: 146.9, restMinutes: 60, weightFromPrevious: 1.15, pacer: "Ben", shoes: "NO SHOE CHANGE" },
+  { name: "Sedona Posse Grounds", mile: 159.1, restMinutes: 120, weightFromPrevious: 1.3, pacer: "Ben", shoes: "NO SHOE CHANGE" },
+  { name: "Schnebly Hill", mile: 176.1, restMinutes: 60, weightFromPrevious: 1.4, pacer: "Joe", shoes: "ROAD SHOES" },
+  { name: "Munds Park", mile: 190.0, restMinutes: 60, weightFromPrevious: 1.05, pacer: "NO PACER SECTION", shoes: "ROAD SHOES" },
+  { name: "Kelly Canyon", mile: 202.7, restMinutes: 10, weightFromPrevious: 1.0, pacer: "Ben", shoes: "NO SHOE CHANGE" },
+  { name: "Fort Tuthill", mile: 211.0, restMinutes: 120, weightFromPrevious: 1.05, pacer: "Ben", shoes: "ROAD SHOES" },
+  { name: "Walnut Canyon", mile: 227.1, restMinutes: 60, weightFromPrevious: 1.2, pacer: "Lin", shoes: "NO SHOE CHANGE" },
+  { name: "Wildcat Hill", mile: 234.1, restMinutes: 30, weightFromPrevious: 1.15, pacer: "Joe C", shoes: "ROAD SHOES" },
+  { name: "Trinity Heights", mile: 249.4, restMinutes: 5, weightFromPrevious: 1.1, pacer: "NO PACER SECTION", shoes: "NO SHOE CHANGE" },
+  { name: "Finish", mile: 253.3, restMinutes: 0, weightFromPrevious: 1.0, pacer: "NO PACER SECTION", shoes: "NO SHOE CHANGE" },
 ];
 
 function roundToFiveMinutes(date) {
@@ -63,15 +63,7 @@ function generateStations() {
     const segmentMiles = station.mile - previousMile;
     const weightedMiles = segmentMiles * station.weightFromPrevious;
 
-    return {
-  name: station.name,
-  mile: station.mile,
-  restMinutes: station.restMinutes,
-  weightFromPrevious: station.weightFromPrevious,
-  pacer: station.pacer || "NO PACER SECTION",
-  in: localDateString(plannedInDate),
-  out: plannedOutDate ? localDateString(plannedOutDate) : "",
-};
+    return { ...station, previousMile, segmentMiles, weightedMiles };
   });
 
   const totalWeightedMiles = weightedSegments.reduce(
@@ -100,6 +92,8 @@ function generateStations() {
       mile: station.mile,
       restMinutes: station.restMinutes,
       weightFromPrevious: station.weightFromPrevious,
+      pacer: station.pacer || "NO PACER SECTION",
+      shoes: station.shoes || "NO SHOE CHANGE",
       in: localDateString(plannedInDate),
       out: plannedOutDate ? localDateString(plannedOutDate) : "",
     };
@@ -107,6 +101,7 @@ function generateStations() {
 }
 
 const stations = generateStations();
+
 const crewAccessibleAid = new Set([
   "Crown King",
   "Whiskey Row",
@@ -166,7 +161,7 @@ const driveData = {
     passStopAddress: "23925 Bumble Bee Rd, Mayer, AZ",
     finalAidAddress: "7219 Main St, Crown King, AZ",
     leg1Drive: 35,
-    passStopBuffer: 75,
+    passStopBuffer: 15,
     leg2Drive: 75,
     instructions:
       "Go to Bumble Bee Ranch first to obtain parking pass. Then continue via fire roads to Crown King. Do not route directly to Crown King without pass stop.",
@@ -235,11 +230,9 @@ function durationShort(ms) {
 
 function formatPlannedLine(station) {
   if (!station?.in) return "—";
-
   const inDate = new Date(station.in);
   const day = inDate.toLocaleDateString([], { weekday: "long" });
   const date = `${inDate.getMonth() + 1}/${inDate.getDate()}`;
-
   return `${day}, ${date}, Planned In: ${time(station.in)} Out: ${time(station.out)}`;
 }
 
@@ -264,24 +257,13 @@ function restStatus(station, record) {
   const planned = plannedRestMs(station);
   const actual = actualStopMs(record);
 
-  if (!planned) {
-    return { label: "No planned rest", bg: "#E9E2D8", color: "#6B5B4D", delta: null, actual };
-  }
-
-  if (!actual) {
-    return { label: "Planned rest", bg: "#F8E7B5", color: "#6E5A00", delta: null, actual };
-  }
+  if (!planned) return { label: "No planned rest", bg: "#E9E2D8", color: "#6B5B4D", delta: null, actual };
+  if (!actual) return { label: "Planned rest", bg: "#F8E7B5", color: "#6E5A00", delta: null, actual };
 
   const delta = actual - planned;
 
-  if (delta <= 0) {
-    return { label: "On / under rest", bg: "#dcfce7", color: "#166534", delta, actual };
-  }
-
-  if (delta <= 15 * 60000) {
-    return { label: "Slight over rest", bg: "#ffd60a", color: "#3B2432", delta, actual };
-  }
-
+  if (delta <= 0) return { label: "On / under rest", bg: "#dcfce7", color: "#166534", delta, actual };
+  if (delta <= 15 * 60000) return { label: "Slight over rest", bg: "#ffd60a", color: "#3B2432", delta, actual };
   return { label: "Bleeding time", bg: "#fee2e2", color: "#991b1b", delta, actual };
 }
 
@@ -333,6 +315,19 @@ function restBadgeStyle(rest) {
     fontWeight: 900,
     background: rest.bg,
     color: rest.color,
+  };
+}
+
+function infoPillStyle(bg = "#F8E7B5") {
+  return {
+    display: "inline-block",
+    marginTop: 8,
+    padding: "6px 10px",
+    borderRadius: 999,
+    fontSize: 12,
+    fontWeight: 900,
+    background: bg,
+    color: "#3B2432",
   };
 }
 
@@ -402,6 +397,70 @@ function decodeShareData(value) {
   }
 }
 
+function getProjectedSchedule(records) {
+  let lastActualIndex = -1;
+
+  records.forEach((r, i) => {
+    if (r.in || r.out) lastActualIndex = i;
+  });
+
+  if (lastActualIndex < 0) {
+    return stations.map((s) => ({
+      projectedIn: s.in,
+      projectedOut: s.out,
+      deltaMs: 0,
+    }));
+  }
+
+  const lastStation = stations[lastActualIndex];
+  const lastRecord = records[lastActualIndex];
+  const lastActualTime = new Date(lastRecord.out || lastRecord.in);
+
+  const remainingStations = stations.slice(lastActualIndex + 1);
+
+  const totalRemainingWeightedMiles = remainingStations.reduce((sum, station, idx) => {
+    const prev = idx === 0 ? lastStation : remainingStations[idx - 1];
+    const segmentMiles = station.mile - prev.mile;
+    return sum + segmentMiles * (station.weightFromPrevious || 1);
+  }, 0);
+
+  const plannedFinish = new Date(stations[stations.length - 1].in);
+  const remainingPlanMs = plannedFinish - new Date(lastRecord.out ? lastStation.out : lastStation.in);
+
+  let cursor = new Date(lastActualTime);
+
+  return stations.map((s, i) => {
+    if (i <= lastActualIndex) {
+      return {
+        projectedIn: records[i].in || s.in,
+        projectedOut: records[i].out || s.out,
+        deltaMs: records[i].in ? new Date(records[i].in) - new Date(s.in) : 0,
+      };
+    }
+
+    const prevStation = stations[i - 1];
+    const segmentMiles = s.mile - prevStation.mile;
+    const weightedMiles = segmentMiles * (s.weightFromPrevious || 1);
+
+    const segmentMs =
+      totalRemainingWeightedMiles > 0
+        ? (weightedMiles / totalRemainingWeightedMiles) * remainingPlanMs
+        : 0;
+
+    const projectedInDate = roundToFiveMinutes(new Date(cursor.getTime() + segmentMs));
+    const rest = plannedRestMs(s);
+    const projectedOutDate = rest ? roundToFiveMinutes(new Date(projectedInDate.getTime() + rest)) : null;
+
+    cursor = projectedOutDate || projectedInDate;
+
+    return {
+      projectedIn: localDateString(projectedInDate),
+      projectedOut: projectedOutDate ? localDateString(projectedOutDate) : "",
+      deltaMs: projectedInDate - new Date(s.in),
+    };
+  });
+}
+
 export default function App() {
   const params = new URLSearchParams(window.location.search);
   const readOnly = params.get("readonly") === "1";
@@ -437,6 +496,8 @@ export default function App() {
   const crew = getCrew(current);
   const nextDrive = getNextDrive(current, next);
   const currentRest = restStatus(current, records[currentIndex]);
+  const projectedSchedule = useMemo(() => getProjectedSchedule(records), [records]);
+  const currentProjected = projectedSchedule[currentIndex];
 
   const prediction = useMemo(() => {
     const start = new Date(RACE_START);
@@ -465,14 +526,19 @@ export default function App() {
     const paceMinPerMile = elapsedMinutes / lastStation.mile;
 
     const remainingMiles = finish.mile - lastStation.mile;
-    const projectedFinish = new Date(lastTime.getTime() + remainingMiles * paceMinPerMile * 60000);
+    const projectedFinish = new Date(
+      lastTime.getTime() + remainingMiles * paceMinPerMile * 60000
+    );
 
     const plannedFinish = new Date(finish.in);
     const deltaVsPlan = projectedFinish - plannedFinish;
 
     const nextTarget = stations.find((s, i) => i > lastActualIndex);
     const projectedNext = nextTarget
-      ? new Date(lastTime.getTime() + (nextTarget.mile - lastStation.mile) * paceMinPerMile * 60000)
+      ? new Date(
+          lastTime.getTime() +
+            (nextTarget.mile - lastStation.mile) * paceMinPerMile * 60000
+        )
       : "";
 
     return {
@@ -567,6 +633,14 @@ export default function App() {
       fontSize: 13,
       color: "#8F7D63",
     },
+    projectionBox: {
+      marginTop: 10,
+      background: "#fff",
+      padding: 10,
+      borderRadius: 12,
+      border: "1px solid #e5d3b3",
+      fontSize: 13,
+    },
   };
 
   return (
@@ -585,26 +659,30 @@ export default function App() {
           <div style={accessStyle(current.name)}>{accessLabel(current.name)}</div>
 
           <div style={{ marginTop: 10 }}>
-  <strong>Randi Planned</strong>
-  <br />
-  {formatPlannedLine(current)}
-  <br />
-  Planned Rest: {durationShort(plannedRestMs(current))}
-</div>
+            <strong>Randi Planned</strong>
+            <br />
+            {formatPlannedLine(current)}
+            <br />
+            Planned Rest: {durationShort(plannedRestMs(current))}
+          </div>
 
-<div
-  style={{
-    marginTop: 10,
-    display: "inline-block",
-    padding: "6px 10px",
-    borderRadius: 999,
-    background: "#fde68a",
-    fontWeight: 900,
-    fontSize: 12,
-  }}
->
-  PACER: {current.pacer || "NO PACER SECTION"}
-</div>
+          <div style={infoPillStyle("#fde68a")}>
+            PACER: {current.pacer || "NO PACER SECTION"}
+          </div>
+
+          <div style={infoPillStyle(current.shoes === "NO SHOE CHANGE" ? "#E9E2D8" : "#bfdbfe")}>
+            SHOES: {current.shoes || "NO SHOE CHANGE"}
+          </div>
+
+          <div style={styles.projectionBox}>
+            <strong>Live Projection</strong>
+            <br />
+            Projected In: {fmt(currentProjected?.projectedIn)}
+            <br />
+            Projected Out: {fmt(currentProjected?.projectedOut)}
+            <br />
+            Δ vs Plan: {duration(currentProjected?.deltaMs)}
+          </div>
 
           {showRestBadge(current) && (
             <div style={restBadgeStyle(currentRest)}>
@@ -692,11 +770,15 @@ export default function App() {
               <br />
               Depart Pass Stop: {crew.passStopDepart ? time(crew.passStopDepart) : "—"}
               <br />
-              <span style={{ color: "#991b1b", fontWeight: 800 }}>{crew.instructions}</span>
+              <span style={{ color: "#991b1b", fontWeight: 800 }}>
+                {crew.instructions}
+              </span>
             </div>
           )}
 
-          {crewAccessibleAid.has(current.name) && <div style={statusStyle(crew.status)}>{crew.status}</div>}
+          {crewAccessibleAid.has(current.name) && (
+            <div style={statusStyle(crew.status)}>{crew.status}</div>
+          )}
 
           {crewAccessibleAid.has(current.name) && (
             <a
@@ -755,6 +837,7 @@ export default function App() {
               const nextStation = stations[i + 1];
               const stationDrive = getNextDrive(s, nextStation);
               const r = restStatus(s, records[i]);
+              const projected = projectedSchedule[i];
 
               return (
                 <div key={s.name} style={{ borderTop: "1px solid #e5d3b3", padding: "12px 0" }}>
@@ -765,6 +848,24 @@ export default function App() {
                     {formatPlannedLine(s)}
                     <br />
                     Planned Rest: {durationShort(plannedRestMs(s))}
+                  </div>
+
+                  <div style={infoPillStyle("#fde68a")}>
+                    PACER: {s.pacer || "NO PACER SECTION"}
+                  </div>
+
+                  <div style={infoPillStyle(s.shoes === "NO SHOE CHANGE" ? "#E9E2D8" : "#bfdbfe")}>
+                    SHOES: {s.shoes || "NO SHOE CHANGE"}
+                  </div>
+
+                  <div style={styles.projectionBox}>
+                    <strong>Live Projection</strong>
+                    <br />
+                    Projected In: {fmt(projected?.projectedIn)}
+                    <br />
+                    Projected Out: {fmt(projected?.projectedOut)}
+                    <br />
+                    Δ vs Plan: {duration(projected?.deltaMs)}
                   </div>
 
                   {showRestBadge(s) && (
@@ -817,7 +918,8 @@ export default function App() {
 
                     {nextStation && (
                       <>
-                        To next: {nextStation.name} · {stationDrive.drive} min / {stationDrive.miles} mi
+                        To next: {nextStation.name} · {stationDrive.drive} min /{" "}
+                        {stationDrive.miles} mi
                       </>
                     )}
                   </div>
@@ -852,7 +954,13 @@ export default function App() {
 
                   {records[i]?.note && (
                     <button
-                      style={{ ...styles.button, width: "100%", marginTop: 8, cursor: "pointer", opacity: 1 }}
+                      style={{
+                        ...styles.button,
+                        width: "100%",
+                        marginTop: 8,
+                        cursor: "pointer",
+                        opacity: 1,
+                      }}
                       onClick={() => toggleNote(i)}
                     >
                       {records[i].open ? "Hide note" : "Show note"}
@@ -896,6 +1004,13 @@ export default function App() {
             <strong>Projected Next Station:</strong>
             <br />
             {prediction.nextTarget ? `${prediction.nextTarget.name}: ${fmt(prediction.projectedNext)}` : "—"}
+            <br />
+            <br />
+            <strong>Average Actual Pace:</strong>
+            <br />
+            {prediction.paceMinPerMile
+              ? `${prediction.paceMinPerMile.toFixed(1)} min / mile elapsed`
+              : "—"}
           </div>
         )}
 
