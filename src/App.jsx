@@ -258,7 +258,7 @@ function restStatus(station, record) {
   const actual = actualStopMs(record);
 
   if (!planned) return { label: "No planned rest", bg: "#E9E2D8", color: "#6B5B4D", delta: null, actual };
-  if (!actual) return { label: "Planned rest", bg: "#F8E7B5", color: "#6E5A00", delta: null, actual };
+  if (!actual) return { label: "Planned rest", bg: "#ede9fe", color: "#5b21b6", delta: null, actual };
 
   const delta = actual - planned;
 
@@ -684,9 +684,15 @@ export default function App() {
               </div>
             )}
 
-            <div style={{ ...infoPillStyle("#fde68a"), marginTop: 0 }}>
-              PACER: {current.pacer || "NO PACER SECTION"}
-            </div>
+            <div
+  style={{
+    ...infoPillStyle("#dbeafe"),
+    marginTop: 0,
+    color: "#1e3a8a",
+  }}
+>
+  PACER: {current.pacer || "NO PACER SECTION"}
+</div>
 
             <div
               style={{
