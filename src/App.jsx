@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 
-const STORAGE_KEY = "cocodona-crew-v16-pacer-color-fix";
+const STORAGE_KEY = "cocodona-crew-v15-badge-row";
 
 const RACE_START = "2026-05-04T05:00:00";
 const GOAL_FINISH = "2026-05-08T02:00:00";
@@ -195,20 +195,6 @@ function buildEmptyRecords() {
   return stations.map(() => ({ in: "", out: "", note: "", open: false }));
 }
 
-function mergeRecordsWithPlan(savedRecords) {
-  const fresh = buildEmptyRecords();
-
-  if (!Array.isArray(savedRecords)) return fresh;
-
-  return fresh.map((empty, index) => ({
-    ...empty,
-    in: savedRecords[index]?.in || "",
-    out: savedRecords[index]?.out || "",
-    note: savedRecords[index]?.note || "",
-    open: savedRecords[index]?.open || false,
-  }));
-}
-
 function time(val) {
   if (!val) return "—";
   return new Date(val).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
@@ -332,7 +318,7 @@ function restBadgeStyle(rest) {
   };
 }
 
-function infoPillStyle(bg = "#F8E7B5", color = "#3B2432") {
+function infoPillStyle(bg = "#F8E7B5") {
   return {
     display: "inline-block",
     marginTop: 8,
@@ -341,16 +327,8 @@ function infoPillStyle(bg = "#F8E7B5", color = "#3B2432") {
     fontSize: 12,
     fontWeight: 900,
     background: bg,
-    color,
+    color: "#3B2432",
   };
-}
-
-function pacerPillStyle() {
-  return infoPillStyle("#e0e7ff", "#3730a3");
-}
-
-function shoesPillStyle(shoes) {
-  return infoPillStyle(shoes === "NO SHOE CHANGE" ? "#E9E2D8" : "#bfdbfe", "#3B2432");
 }
 
 function getCrew(station) {
@@ -471,9 +449,7 @@ function getProjectedSchedule(records) {
 
     const projectedInDate = roundToFiveMinutes(new Date(cursor.getTime() + segmentMs));
     const rest = plannedRestMs(s);
-    const projectedOutDate = rest
-      ? roundToFiveMinutes(new Date(projectedInDate.getTime() + rest))
-      : null;
+    const projectedOutDate = rest ? roundToFiveMinutes(new Date(projectedInDate.getTime() + rest)) : null;
 
     cursor = projectedOutDate || projectedInDate;
 
@@ -496,13 +472,13 @@ export default function App() {
   useEffect(() => {
     if (sharedData) {
       const decoded = decodeShareData(sharedData);
-      if (decoded?.length) setRecords(mergeRecordsWithPlan(decoded));
+      if (decoded?.length) setRecords(decoded);
       return;
     }
 
     try {
       const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
-      if (saved?.records) setRecords(mergeRecordsWithPlan(saved.records));
+      if (saved?.records) setRecords(saved.records);
       if (saved?.tab) setTab(saved.tab);
     } catch {}
   }, [sharedData]);
@@ -522,6 +498,59 @@ export default function App() {
   const currentRest = restStatus(current, records[currentIndex]);
   const projectedSchedule = useMemo(() => getProjectedSchedule(records), [records]);
   const currentProjected = projectedSchedule[currentIndex];
+
+  const prediction = useMemo(() => {
+    const start = new Date(RACE_START);
+    const finish = stations[stations.length - 1];
+
+    let lastActualIndex = -1;
+    records.forEach((r, i) => {
+      if (r.in || r.out) lastActualIndex = i;
+    });
+
+    if (lastActualIndex < 0) {
+      return {
+        basedOn: "No actuals yet",
+        projectedFinish: "",
+        projectedHours: null,
+        deltaVsPlan: null,
+        projectedNext: "",
+        paceMinPerMile: null,
+      };
+    }
+
+    const lastStation = stations[lastActualIndex];
+    const lastTime = new Date(records[lastActualIndex].out || records[lastActualIndex].in);
+    const elapsedMs = lastTime - start;
+    const elapsedMinutes = elapsedMs / 60000;
+    const paceMinPerMile = elapsedMinutes / lastStation.mile;
+
+    const remainingMiles = finish.mile - lastStation.mile;
+    const projectedFinish = new Date(
+      lastTime.getTime() + remainingMiles * paceMinPerMile * 60000
+    );
+
+    const plannedFinish = new Date(finish.in);
+    const deltaVsPlan = projectedFinish - plannedFinish;
+
+    const nextTarget = stations.find((s, i) => i > lastActualIndex);
+    const projectedNext = nextTarget
+      ? new Date(
+          lastTime.getTime() +
+            (nextTarget.mile - lastStation.mile) * paceMinPerMile * 60000
+        )
+      : "";
+
+    return {
+      basedOn: `${lastStation.name} mile ${lastStation.mile}`,
+      projectedFinish,
+      projectedHours: (projectedFinish - start) / 3600000,
+      deltaVsPlan,
+      projectedNext,
+      nextTarget,
+      paceMinPerMile,
+    };
+  }, [records]);
 
   function stamp(i, field) {
     if (readOnly) return;
@@ -559,89 +588,494 @@ export default function App() {
       padding: 12,
       fontFamily: "Inter, system-ui, -apple-system, sans-serif",
       color: "#3B2432",
+      boxSizing: "border-box",
+      overflowX: "hidden",
     },
-    wrap: { maxWidth: 430, margin: "0 auto", display: "grid", gap: 12 },
+    wrap: {
+      maxWidth: 430,
+      margin: "0 auto",
+      display: "grid",
+      gap: 12,
+      paddingBottom: 40,
+    },
     card: {
       background: "#fff7ed",
       borderRadius: 22,
       padding: 14,
       border: "1px solid #e5d3b3",
+      boxSizing: "border-box",
+      overflow: "hidden",
     },
-    grid2: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 },
-    button: { minHeight: 48, borderRadius: 16, border: "none", fontWeight: 800 },
+    grid2: {
+      display: "grid",
+      gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+      gap: 10,
+    },
+    button: {
+      minHeight: 48,
+      borderRadius: 16,
+      border: "none",
+      fontWeight: 800,
+      padding: 10,
+      cursor: readOnly ? "not-allowed" : "pointer",
+      opacity: readOnly ? 0.65 : 1,
+    },
     input: {
       width: "100%",
       height: 42,
       borderRadius: 14,
       border: "1px solid #e5d3b3",
       padding: "0 10px",
+      boxSizing: "border-box",
+      background: "#fffdf9",
     },
-    small: { fontSize: 13, color: "#8F7D63" },
+    small: {
+      fontSize: 13,
+      color: "#8F7D63",
+    },
     projectionBox: {
       marginTop: 10,
       background: "#fff",
       padding: 10,
       borderRadius: 12,
       border: "1px solid #e5d3b3",
+      fontSize: 13,
     },
     badgeRow: {
       display: "flex",
       flexWrap: "wrap",
       gap: 8,
       marginTop: 10,
+      alignItems: "center",
     },
   };
 
   return (
     <div style={styles.page}>
       <div style={styles.wrap}>
+        {readOnly && (
+          <div style={{ ...styles.card, background: "#fee2e2", fontWeight: 900 }}>
+            READ-ONLY CREW VIEW
+          </div>
+        )}
+
         <div style={styles.card}>
-          <h2>{current.name}</h2>
+          <h2 style={{ margin: 0 }}>{current.name}</h2>
           <div style={styles.small}>Mile {current.mile}</div>
 
-          <div>
+          <div style={{ marginTop: 10 }}>
+            <strong>Randi Planned</strong>
+            <br />
             {formatPlannedLine(current)}
             <br />
             Planned Rest: {durationShort(plannedRestMs(current))}
           </div>
 
           <div style={styles.badgeRow}>
-            <div style={accessStyle(current.name)}>
+            <div style={{ ...accessStyle(current.name), marginTop: 0 }}>
               {accessLabel(current.name)}
             </div>
 
             {showRestBadge(current) && (
-              <div style={restBadgeStyle(currentRest)}>
+              <div style={{ ...restBadgeStyle(currentRest), marginTop: 0 }}>
                 {currentRest.label}
+                {currentRest.actual ? ` · Actual ${durationShort(currentRest.actual)}` : ""}
+                {currentRest.delta ? ` · ${duration(currentRest.delta)} vs plan` : ""}
               </div>
             )}
 
-            <div style={pacerPillStyle()}>
-              PACER: {current.pacer}
+            <div style={{ ...infoPillStyle("#fde68a"), marginTop: 0 }}>
+              PACER: {current.pacer || "NO PACER SECTION"}
             </div>
 
-            <div style={shoesPillStyle(current.shoes)}>
-              SHOES: {current.shoes}
+            <div
+              style={{
+                ...infoPillStyle(current.shoes === "NO SHOE CHANGE" ? "#E9E2D8" : "#bfdbfe"),
+                marginTop: 0,
+              }}
+            >
+              SHOES: {current.shoes || "NO SHOE CHANGE"}
             </div>
           </div>
 
           <div style={styles.projectionBox}>
+            <strong>Live Projection</strong>
+            <br />
             Projected In: {fmt(currentProjected?.projectedIn)}
             <br />
             Projected Out: {fmt(currentProjected?.projectedOut)}
+            <br />
+            Δ vs Plan: {duration(currentProjected?.deltaMs)}
           </div>
 
-          <div style={styles.grid2}>
-            <button onClick={() => stamp(currentIndex, "in")}>IN</button>
-            <button onClick={() => stamp(currentIndex, "out")}>OUT</button>
+          <div style={{ ...styles.grid2, marginTop: 12 }}>
+            <button
+              disabled={readOnly}
+              style={{ ...styles.button, background: "#ef476f", color: "#fff" }}
+              onClick={() => stamp(currentIndex, "in")}
+            >
+              TAP IN
+            </button>
+            <button
+              disabled={readOnly}
+              style={{ ...styles.button, background: "#ffd60a", color: "#3B2432" }}
+              onClick={() => stamp(currentIndex, "out")}
+            >
+              TAP OUT
+            </button>
           </div>
+
+          <div style={{ ...styles.grid2, marginTop: 12, fontSize: 13 }}>
+            <div>
+              <strong>Actual In</strong>
+              <br />
+              {fmt(records[currentIndex]?.in)}
+            </div>
+            <div>
+              <strong>Actual Out</strong>
+              <br />
+              {fmt(records[currentIndex]?.out)}
+            </div>
+
+            {crewAccessibleAid.has(current.name) && (
+              <>
+                <div>
+                  <strong>Crew Base</strong>
+                  <br />
+                  {crew.baseLabel}
+                  <br />
+                  {crew.hotel}
+                </div>
+                <div>
+                  <strong>Hotel Drive</strong>
+                  <br />
+                  {crew.drive} min / {crew.distance} mi
+                </div>
+                <div>
+                  <strong>Crew Leave</strong>
+                  <br />
+                  {time(crew.leave)}
+                </div>
+                <div>
+                  <strong>Crew Arrive</strong>
+                  <br />
+                  {time(crew.arrive)}
+                </div>
+              </>
+            )}
+          </div>
+
+          {crew.specialRoute && (
+            <div
+              style={{
+                marginTop: 12,
+                fontSize: 13,
+                background: "#fff",
+                padding: 10,
+                borderRadius: 12,
+                border: "1px solid #ef476f",
+              }}
+            >
+              <strong>Special Route</strong>
+              <br />
+              {crew.routeLabel}
+              <br />
+              Pass Stop: {crew.passStopName}
+              <br />
+              Pass Stop ETA: {crew.passStopArrive ? time(crew.passStopArrive) : "—"}
+              <br />
+              Depart Pass Stop: {crew.passStopDepart ? time(crew.passStopDepart) : "—"}
+              <br />
+              <span style={{ color: "#991b1b", fontWeight: 800 }}>
+                {crew.instructions}
+              </span>
+            </div>
+          )}
+
+          {crewAccessibleAid.has(current.name) && (
+            <div style={statusStyle(crew.status)}>{crew.status}</div>
+          )}
+
+          {crewAccessibleAid.has(current.name) && (
+            <a
+              href={mapsLink(current, crew.hotelAddress)}
+              target="_blank"
+              rel="noreferrer"
+              style={{ display: "block", marginTop: 12, color: "#ef476f", fontWeight: 800 }}
+            >
+              Open hotel → aid route
+            </a>
+          )}
+
+          {next && (
+            <div style={{ marginTop: 12 }}>
+              <strong>Current → Next Aid</strong>
+              <br />
+              {current.name} → {next.name}
+              <br />
+              Drive estimate: {nextDrive.drive} min / {nextDrive.miles} mi
+            </div>
+          )}
 
           <input
-            style={styles.input}
-            value={records[currentIndex]?.note}
+            disabled={readOnly}
+            style={{ ...styles.input, marginTop: 12 }}
+            placeholder="Notes"
+            value={records[currentIndex]?.note || ""}
             onChange={(e) => updateNote(currentIndex, e.target.value)}
           />
         </div>
+
+        <div style={styles.grid2}>
+          {["active", "stations", "prediction", "backup"].map((t) => (
+            <button
+              key={t}
+              style={{
+                ...styles.button,
+                cursor: "pointer",
+                opacity: 1,
+                background: tab === t ? "#ef476f" : "#fff7ed",
+                color: tab === t ? "#fff" : "#3B2432",
+                border: "1px solid #e5d3b3",
+              }}
+              onClick={() => setTab(t)}
+            >
+              {t.toUpperCase()}
+            </button>
+          ))}
+        </div>
+
+        {tab === "stations" && (
+          <div style={styles.card}>
+            <h3>Stations</h3>
+            {stations.map((s, i) => {
+              const c = getCrew(s);
+              const nextStation = stations[i + 1];
+              const stationDrive = getNextDrive(s, nextStation);
+              const r = restStatus(s, records[i]);
+              const projected = projectedSchedule[i];
+
+              return (
+                <div key={s.name} style={{ borderTop: "1px solid #e5d3b3", padding: "12px 0" }}>
+                  <strong>{s.name}</strong>
+                  <div style={styles.small}>Mile {s.mile}</div>
+
+                  <div style={{ fontSize: 12, marginTop: 4 }}>
+                    {formatPlannedLine(s)}
+                    <br />
+                    Planned Rest: {durationShort(plannedRestMs(s))}
+                  </div>
+
+                  <div style={styles.badgeRow}>
+                    <div style={{ ...accessStyle(s.name), marginTop: 0 }}>
+                      {accessLabel(s.name)}
+                    </div>
+
+                    {showRestBadge(s) && (
+                      <div style={{ ...restBadgeStyle(r), marginTop: 0 }}>
+                        {r.label}
+                        {r.actual ? ` · Actual ${durationShort(r.actual)}` : ""}
+                        {r.delta ? ` · ${duration(r.delta)} vs plan` : ""}
+                      </div>
+                    )}
+
+                    <div style={{ ...infoPillStyle("#fde68a"), marginTop: 0 }}>
+                      PACER: {s.pacer || "NO PACER SECTION"}
+                    </div>
+
+                    <div
+                      style={{
+                        ...infoPillStyle(s.shoes === "NO SHOE CHANGE" ? "#E9E2D8" : "#bfdbfe"),
+                        marginTop: 0,
+                      }}
+                    >
+                      SHOES: {s.shoes || "NO SHOE CHANGE"}
+                    </div>
+                  </div>
+
+                  <div style={styles.projectionBox}>
+                    <strong>Live Projection</strong>
+                    <br />
+                    Projected In: {fmt(projected?.projectedIn)}
+                    <br />
+                    Projected Out: {fmt(projected?.projectedOut)}
+                    <br />
+                    Δ vs Plan: {duration(projected?.deltaMs)}
+                  </div>
+
+                  <div style={{ fontSize: 13, marginTop: 8 }}>
+                    {crewAccessibleAid.has(s.name) && (
+                      <>
+                        Crew Base: {c.baseLabel}
+                        <br />
+                        Hotel: {c.hotel}
+                        <br />
+                        Hotel drive: {c.drive} min / {c.distance} mi
+                        <br />
+                        Crew leave: {time(c.leave)} · arrive: {time(c.arrive)}
+                        <br />
+                        Status: {c.status}
+                        <br />
+                      </>
+                    )}
+
+                    {c.specialRoute && (
+                      <>
+                        Special Route: {c.routeLabel}
+                        <br />
+                        Pass Stop: {c.passStopName}
+                        <br />
+                        Pass Stop ETA: {c.passStopArrive ? time(c.passStopArrive) : "—"}
+                        <br />
+                        Depart Pass Stop: {c.passStopDepart ? time(c.passStopDepart) : "—"}
+                        <br />
+                        {c.instructions}
+                        <br />
+                      </>
+                    )}
+
+                    {!crewAccessibleAid.has(s.name) && (
+                      <>
+                        Status: NO CREW ACCESS
+                        <br />
+                      </>
+                    )}
+
+                    {nextStation && (
+                      <>
+                        To next: {nextStation.name} · {stationDrive.drive} min /{" "}
+                        {stationDrive.miles} mi
+                      </>
+                    )}
+                  </div>
+
+                  {crewAccessibleAid.has(s.name) && (
+                    <a
+                      href={mapsLink(s, c.hotelAddress)}
+                      target="_blank"
+                      rel="noreferrer"
+                      style={{ display: "block", marginTop: 8, color: "#ef476f", fontWeight: 800 }}
+                    >
+                      Open route
+                    </a>
+                  )}
+
+                  <div style={{ ...styles.grid2, marginTop: 8 }}>
+                    <button disabled={readOnly} style={styles.button} onClick={() => stamp(i, "in")}>
+                      IN
+                    </button>
+                    <button disabled={readOnly} style={styles.button} onClick={() => stamp(i, "out")}>
+                      OUT
+                    </button>
+                  </div>
+
+                  <input
+                    disabled={readOnly}
+                    style={{ ...styles.input, marginTop: 8 }}
+                    placeholder="Station note"
+                    value={records[i]?.note || ""}
+                    onChange={(e) => updateNote(i, e.target.value)}
+                  />
+
+                  {records[i]?.note && (
+                    <button
+                      style={{
+                        ...styles.button,
+                        width: "100%",
+                        marginTop: 8,
+                        cursor: "pointer",
+                        opacity: 1,
+                      }}
+                      onClick={() => toggleNote(i)}
+                    >
+                      {records[i].open ? "Hide note" : "Show note"}
+                    </button>
+                  )}
+
+                  {records[i]?.open && (
+                    <div style={{ background: "#fff", padding: 10, borderRadius: 12, marginTop: 8 }}>
+                      {records[i].note}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {tab === "prediction" && (
+          <div style={styles.card}>
+            <h3>Live Prediction Engine</h3>
+            <strong>Based on:</strong>
+            <br />
+            {prediction.basedOn}
+            <br />
+            <br />
+            <strong>Projected Finish:</strong>
+            <br />
+            {fmt(prediction.projectedFinish)}
+            <br />
+            <br />
+            <strong>Projected Cumulative Hours:</strong>
+            <br />
+            {prediction.projectedHours ? `${prediction.projectedHours.toFixed(1)} hrs` : "—"}
+            <br />
+            <br />
+            <strong>Trend vs Goal Finish:</strong>
+            <br />
+            {duration(prediction.deltaVsPlan)}
+            <br />
+            <br />
+            <strong>Projected Next Station:</strong>
+            <br />
+            {prediction.nextTarget ? `${prediction.nextTarget.name}: ${fmt(prediction.projectedNext)}` : "—"}
+            <br />
+            <br />
+            <strong>Average Actual Pace:</strong>
+            <br />
+            {prediction.paceMinPerMile
+              ? `${prediction.paceMinPerMile.toFixed(1)} min / mile elapsed`
+              : "—"}
+          </div>
+        )}
+
+        {tab === "backup" && (
+          <div style={styles.card}>
+            <h3>Backup / Share</h3>
+
+            {!readOnly && (
+              <>
+                <button style={{ ...styles.button, width: "100%" }} onClick={copyReadOnlyLink}>
+                  Copy Read-Only Crew Link
+                </button>
+
+                <button
+                  style={{ ...styles.button, width: "100%", marginTop: 10 }}
+                  onClick={() => {
+                    navigator.clipboard.writeText(JSON.stringify({ records, tab }, null, 2));
+                    alert("Backup copied.");
+                  }}
+                >
+                  Copy Backup JSON
+                </button>
+
+                <button
+                  style={{
+                    ...styles.button,
+                    width: "100%",
+                    marginTop: 10,
+                    background: "#fee2e2",
+                  }}
+                  onClick={resetAll}
+                >
+                  Reset All
+                </button>
+              </>
+            )}
+
+            {readOnly && <div>This is a locked crew view. No edits allowed.</div>}
+          </div>
+        )}
       </div>
     </div>
   );
