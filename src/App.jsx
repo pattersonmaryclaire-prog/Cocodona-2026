@@ -1,27 +1,54 @@
 import React, { useEffect, useMemo, useState } from "react";
 
-const STORAGE_KEY = "cocodona-crew-v15-badge-row";
+const STORAGE_KEY = "cocodona-crew-v17-pacer-update";
 
 const RACE_START = "2026-05-04T05:00:00";
 const GOAL_FINISH = "2026-05-08T02:00:00";
-const FINISH_MILE = 253.3;
 
 const stationPlan = [
+  { name: "Cottonwood Creek", mile: 7.4, restMinutes: 5, weightFromPrevious: 1.05, pacer: "NO PACER SECTION", shoes: "NO SHOE CHANGE" },
+  { name: "Lane Mountain", mile: 32.5, restMinutes: 30, weightFromPrevious: 1.25, pacer: "NO PACER SECTION", shoes: "NO SHOE CHANGE" },
+  { name: "Crown King", mile: 36.6, restMinutes: 60, weightFromPrevious: 1.75, pacer: "NO PACER SECTION", shoes: "NO SHOE CHANGE" },
+  { name: "Arrastra Creek", mile: 51.0, restMinutes: 60, weightFromPrevious: 1.05, pacer: "NO PACER SECTION", shoes: "NO SHOE CHANGE" },
+  { name: "Kamp Kipa", mile: 60.8, restMinutes: 60, weightFromPrevious: 1.1, pacer: "NO PACER SECTION", shoes: "NO SHOE CHANGE" },
+  { name: "Camp W", mile: 67.4, restMinutes: 10, weightFromPrevious: 0.95, pacer: "NO PACER SECTION", shoes: "NO SHOE CHANGE" },
+
   { name: "Whiskey Row", mile: 75.6, restMinutes: 120, weightFromPrevious: 0.9, pacer: "Lin", shoes: "ROAD SHOES" },
-{ name: "Watson Lake", mile: 82.8, restMinutes: 10, weightFromPrevious: 0.9, pacer: "Lin", shoes: "NO SHOE CHANGE" },
-{ name: "Fain Ranch", mile: 96.5, restMinutes: 60, weightFromPrevious: 0.95, pacer: "Ben", shoes: "NO SHOE CHANGE" },
-{ name: "Mingus Mountain", mile: 107.2, restMinutes: 60, weightFromPrevious: 1.35, pacer: "Ben", shoes: "NO SHOE CHANGE" },
-{ name: "Jerome", mile: 124.2, restMinutes: 120, weightFromPrevious: 1.15, pacer: "Lin", shoes: "ROAD SHOES" },
-{ name: "Dead Horse", mile: 132.9, restMinutes: 15, weightFromPrevious: 1.0, pacer: "Ben", shoes: "TRAIL SHOES" },
-{ name: "Deer Pass", mile: 146.9, restMinutes: 60, weightFromPrevious: 1.15, pacer: "Ben", shoes: "NO SHOE CHANGE" },
-{ name: "Sedona Posse Grounds", mile: 159.1, restMinutes: 120, weightFromPrevious: 1.3, pacer: "Joe", shoes: "NO SHOE CHANGE" },
-{ name: "Schnebly Hill", mile: 176.1, restMinutes: 60, weightFromPrevious: 1.4, pacer: "NO PACER SECTION", shoes: "TRAIL SHOES" },
-{ name: "Munds Park", mile: 190.0, restMinutes: 60, weightFromPrevious: 1.05, pacer: "Ben", shoes: "ROAD SHOES" },
-{ name: "Kelly Canyon", mile: 202.7, restMinutes: 10, weightFromPrevious: 1.0, pacer: "Ben", shoes: "NO SHOE CHANGE" },
-{ name: "Fort Tuthill", mile: 211.0, restMinutes: 120, weightFromPrevious: 1.05, pacer: "Lin", shoes: "TRAIL SHOES" },
-{ name: "Walnut Canyon", mile: 227.1, restMinutes: 60, weightFromPrevious: 1.2, pacer: "Joe C", shoes: "NO SHOE CHANGE" },
-{ name: "Wildcat Hill", mile: 234.1, restMinutes: 30, weightFromPrevious: 1.15, pacer: "NO PACER SECTION", shoes: "ROAD SHOES" },
-{ name: "Trinity Heights", mile: 249.4, restMinutes: 5, weightFromPrevious: 1.1, pacer: "NO PACER SECTION", shoes: "NO SHOE CHANGE" },
+  { name: "Watson Lake", mile: 82.8, restMinutes: 10, weightFromPrevious: 0.9, pacer: "Lin", shoes: "NO SHOE CHANGE" },
+  { name: "Fain Ranch", mile: 96.5, restMinutes: 60, weightFromPrevious: 0.95, pacer: "Ben", shoes: "NO SHOE CHANGE" },
+  { name: "Mingus Mountain", mile: 107.2, restMinutes: 60, weightFromPrevious: 1.35, pacer: "Ben", shoes: "NO SHOE CHANGE" },
+  { name: "Jerome", mile: 124.2, restMinutes: 120, weightFromPrevious: 1.15, pacer: "Lin", shoes: "ROAD SHOES" },
+  { name: "Dead Horse", mile: 132.9, restMinutes: 15, weightFromPrevious: 1.0, pacer: "Ben", shoes: "TRAIL SHOES" },
+  { name: "Deer Pass", mile: 146.9, restMinutes: 60, weightFromPrevious: 1.15, pacer: "Ben", shoes: "NO SHOE CHANGE" },
+  { name: "Sedona Posse Grounds", mile: 159.1, restMinutes: 120, weightFromPrevious: 1.3, pacer: "Joe", shoes: "NO SHOE CHANGE" },
+  { name: "Schnebly Hill", mile: 176.1, restMinutes: 60, weightFromPrevious: 1.4, pacer: "NO PACER SECTION", shoes: "ROAD SHOES" },
+  { name: "Munds Park", mile: 190.0, restMinutes: 60, weightFromPrevious: 1.05, pacer: "Ben", shoes: "ROAD SHOES" },
+  { name: "Kelly Canyon", mile: 202.7, restMinutes: 10, weightFromPrevious: 1.0, pacer: "Ben", shoes: "NO SHOE CHANGE" },
+  { name: "Fort Tuthill", mile: 211.0, restMinutes: 120, weightFromPrevious: 1.05, pacer: "Lin", shoes: "ROAD SHOES" },
+  { name: "Walnut Canyon", mile: 227.1, restMinutes: 60, weightFromPrevious: 1.2, pacer: "Joe C", shoes: "NO SHOE CHANGE" },
+  { name: "Wildcat Hill", mile: 234.1, restMinutes: 30, weightFromPrevious: 1.15, pacer: "NO PACER SECTION", shoes: "ROAD SHOES" },
+  { name: "Trinity Heights", mile: 249.4, restMinutes: 5, weightFromPrevious: 1.1, pacer: "NO PACER SECTION", shoes: "NO SHOE CHANGE" },
+  { name: "Finish", mile: 253.3, restMinutes: 0, weightFromPrevious: 1.0, pacer: "NO PACER SECTION", shoes: "NO SHOE CHANGE" },
+];
+
+// --- PACER COLOR SYSTEM ---
+function pacerStyle(pacer) {
+  if (!pacer || pacer === "NO PACER SECTION") {
+    return { background: "#e5e7eb", color: "#374151" };
+  }
+  if (pacer.includes("Ben")) return { background: "#dcfce7", color: "#166534" };
+  if (pacer.includes("Lin")) return { background: "#dbeafe", color: "#1e3a8a" };
+  if (pacer.includes("Joe")) return { background: "#fee2e2", color: "#991b1b" };
+  return { background: "#ede9fe", color: "#5b21b6" };
+}
+
+// --- PLANNED REST (PURPLE) ---
+function restStyle() {
+  return {
+    background: "#ede9fe",
+    color: "#5b21b6",
+  };
+}
 
 function roundToFiveMinutes(date) {
   const rounded = new Date(date);
@@ -256,7 +283,7 @@ function restStatus(station, record) {
 
   if (delta <= 0) return { label: "On / under rest", bg: "#dcfce7", color: "#166534", delta, actual };
   if (delta <= 15 * 60000) return { label: "Slight over rest", bg: "#ffd60a", color: "#3B2432", delta, actual };
-  return { label: "Bleeding time", bg: "#fee2e2", color: "#991b1b", delta, actual };
+  return { label: "⚠ BLEEDING TIME", bg: "#ef4444", color: "#fff", delta, actual };
 }
 
 function accessLabel(name) {
@@ -310,7 +337,7 @@ function restBadgeStyle(rest) {
   };
 }
 
-function infoPillStyle(bg = "#F8E7B5") {
+function pillStyle(styleObj) {
   return {
     display: "inline-block",
     marginTop: 8,
@@ -318,9 +345,19 @@ function infoPillStyle(bg = "#F8E7B5") {
     borderRadius: 999,
     fontSize: 12,
     fontWeight: 900,
-    background: bg,
-    color: "#3B2432",
+    ...styleObj,
   };
+}
+
+function shoesStyle(shoes) {
+  return shoes === "NO SHOE CHANGE"
+    ? { background: "#E9E2D8", color: "#3B2432" }
+    : { background: "#bfdbfe", color: "#3B2432" };
+}
+
+function isPacerPickup(index) {
+  if (index === 0) return false;
+  return stations[index].pacer !== stations[index - 1].pacer;
 }
 
 function getCrew(station) {
@@ -407,7 +444,6 @@ function getProjectedSchedule(records) {
   const lastStation = stations[lastActualIndex];
   const lastRecord = records[lastActualIndex];
   const lastActualTime = new Date(lastRecord.out || lastRecord.in);
-
   const remainingStations = stations.slice(lastActualIndex + 1);
 
   const totalRemainingWeightedMiles = remainingStations.reduce((sum, station, idx) => {
@@ -441,7 +477,9 @@ function getProjectedSchedule(records) {
 
     const projectedInDate = roundToFiveMinutes(new Date(cursor.getTime() + segmentMs));
     const rest = plannedRestMs(s);
-    const projectedOutDate = rest ? roundToFiveMinutes(new Date(projectedInDate.getTime() + rest)) : null;
+    const projectedOutDate = rest
+      ? roundToFiveMinutes(new Date(projectedInDate.getTime() + rest))
+      : null;
 
     cursor = projectedOutDate || projectedInDate;
 
@@ -518,19 +556,13 @@ export default function App() {
     const paceMinPerMile = elapsedMinutes / lastStation.mile;
 
     const remainingMiles = finish.mile - lastStation.mile;
-    const projectedFinish = new Date(
-      lastTime.getTime() + remainingMiles * paceMinPerMile * 60000
-    );
-
+    const projectedFinish = new Date(lastTime.getTime() + remainingMiles * paceMinPerMile * 60000);
     const plannedFinish = new Date(finish.in);
     const deltaVsPlan = projectedFinish - plannedFinish;
 
     const nextTarget = stations.find((s, i) => i > lastActualIndex);
     const projectedNext = nextTarget
-      ? new Date(
-          lastTime.getTime() +
-            (nextTarget.mile - lastStation.mile) * paceMinPerMile * 60000
-        )
+      ? new Date(lastTime.getTime() + (nextTarget.mile - lastStation.mile) * paceMinPerMile * 60000)
       : "";
 
     return {
@@ -640,6 +672,16 @@ export default function App() {
       marginTop: 10,
       alignItems: "center",
     },
+    pickup: {
+      marginTop: 8,
+      padding: "8px 12px",
+      borderRadius: 12,
+      background: "#6366f1",
+      color: "#fff",
+      fontWeight: 900,
+      fontSize: 12,
+      textAlign: "center",
+    },
   };
 
   return (
@@ -676,25 +718,16 @@ export default function App() {
               </div>
             )}
 
-            <div
-  style={{
-    ...infoPillStyle("#dbeafe"),
-    marginTop: 0,
-    color: "#1e3a8a",
-  }}
->
-  PACER: {current.pacer || "NO PACER SECTION"}
-</div>
+            <div style={pillStyle({ ...pacerStyle(current.pacer), marginTop: 0 })}>
+              PACER: {current.pacer || "NO PACER SECTION"}
+            </div>
 
-            <div
-              style={{
-                ...infoPillStyle(current.shoes === "NO SHOE CHANGE" ? "#E9E2D8" : "#bfdbfe"),
-                marginTop: 0,
-              }}
-            >
+            <div style={pillStyle({ ...shoesStyle(current.shoes), marginTop: 0 })}>
               SHOES: {current.shoes || "NO SHOE CHANGE"}
             </div>
           </div>
+
+          {isPacerPickup(currentIndex) && <div style={styles.pickup}>PACER PICKUP</div>}
 
           <div style={styles.projectionBox}>
             <strong>Live Projection</strong>
@@ -877,19 +910,16 @@ export default function App() {
                       </div>
                     )}
 
-                    <div style={{ ...infoPillStyle("#fde68a"), marginTop: 0 }}>
+                    <div style={pillStyle({ ...pacerStyle(s.pacer), marginTop: 0 })}>
                       PACER: {s.pacer || "NO PACER SECTION"}
                     </div>
 
-                    <div
-                      style={{
-                        ...infoPillStyle(s.shoes === "NO SHOE CHANGE" ? "#E9E2D8" : "#bfdbfe"),
-                        marginTop: 0,
-                      }}
-                    >
+                    <div style={pillStyle({ ...shoesStyle(s.shoes), marginTop: 0 })}>
                       SHOES: {s.shoes || "NO SHOE CHANGE"}
                     </div>
                   </div>
+
+                  {isPacerPickup(i) && <div style={styles.pickup}>PACER PICKUP</div>}
 
                   <div style={styles.projectionBox}>
                     <strong>Live Projection</strong>
