@@ -417,10 +417,10 @@ function getProjectedSchedule(records) {
     return sum + segmentMiles * (station.weightFromPrevious || 1);
   }, 0);
 
-  const plannedFinish = new Date(stations[stations.length - 1].in);
-  const remainingPlanMs = plannedFinish - new Date(lastRecord.out ? lastStation.out : lastStation.in);
-
-  let cursor = new Date(lastActualTime);
+  const plannedAnchorTime = new Date(lastRecord.out ? lastStation.out : lastStation.in);
+const plannedRemainingMs = plannedFinish - plannedAnchorTime;
+const actualDeltaMs = lastActualTime - plannedAnchorTime;
+const remainingPlanMs = Math.max(0, plannedRemainingMs - actualDeltaMs);
 
   return stations.map((s, i) => {
     if (i <= lastActualIndex) {
