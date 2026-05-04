@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 
-const STORAGE_KEY = "cocodona-crew-v18-manual-in-out";
+const STORAGE_KEY = "cocodona-crew-v19-safe-manual-inputs";
 
 const RACE_START = "2026-05-04T05:00:00";
 const GOAL_FINISH = "2026-05-08T02:00:00";
@@ -12,6 +12,7 @@ const stationPlan = [
   { name: "Arrastra Creek", mile: 51.0, restMinutes: 60, weightFromPrevious: 1.05, pacer: "NO PACER SECTION", shoes: "NO SHOE CHANGE" },
   { name: "Kamp Kipa", mile: 60.8, restMinutes: 60, weightFromPrevious: 1.1, pacer: "NO PACER SECTION", shoes: "NO SHOE CHANGE" },
   { name: "Camp W", mile: 67.4, restMinutes: 10, weightFromPrevious: 0.95, pacer: "NO PACER SECTION", shoes: "NO SHOE CHANGE" },
+
   { name: "Whiskey Row", mile: 75.6, restMinutes: 120, weightFromPrevious: 0.9, pacer: "Lin", shoes: "ROAD SHOES" },
   { name: "Watson Lake", mile: 82.8, restMinutes: 10, weightFromPrevious: 0.9, pacer: "Lin", shoes: "NO SHOE CHANGE" },
   { name: "Fain Ranch", mile: 96.5, restMinutes: 60, weightFromPrevious: 0.95, pacer: "Ben", shoes: "NO SHOE CHANGE" },
@@ -40,6 +41,7 @@ function pacerStyle(pacer) {
 
 function roundToFiveMinutes(date) {
   const rounded = new Date(date);
+  if (Number.isNaN(rounded.getTime())) return new Date();
   const mins = rounded.getMinutes();
   const roundedMins = Math.round(mins / 5) * 5;
   rounded.setMinutes(roundedMins, 0, 0);
@@ -47,16 +49,24 @@ function roundToFiveMinutes(date) {
 }
 
 function localDateString(date) {
+  const d = new Date(date);
+  if (Number.isNaN(d.getTime())) return "";
+
   const pad = (n) => String(n).padStart(2, "0");
-  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(
-    date.getHours()
-  )}:${pad(date.getMinutes())}:00`;
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(
+    d.getHours()
+  )}:${pad(d.getMinutes())}:00`;
+}
+
+function isValidDateValue(val) {
+  if (!val) return false;
+  const d = new Date(val);
+  return !Number.isNaN(d.getTime());
 }
 
 function toDateTimeInputValue(val) {
   if (!val) return "";
 
-  // datetime-local already wants YYYY-MM-DDTHH:mm
   if (typeof val === "string" && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(val)) {
     return val.slice(0, 16);
   }
@@ -188,13 +198,26 @@ function buildEmptyRecords() {
   return stations.map(() => ({ in: "", out: "", note: "", open: false }));
 }
 
+function normalizeSavedRecords(savedRecords) {
+  const fresh = buildEmptyRecords();
+  if (!Array.isArray(savedRecords)) return fresh;
+
+  return fresh.map((empty, index) => ({
+    ...empty,
+    in: isValidDateValue(savedRecords[index]?.in) ? savedRecords[index].in : "",
+    out: isValidDateValue(savedRecords[index]?.out) ? savedRecords[index].out : "",
+    note: savedRecords[index]?.note || "",
+    open: Boolean(savedRecords[index]?.open),
+  }));
+}
+
 function time(val) {
-  if (!val) return "—";
+  if (!isValidDateValue(val)) return "—";
   return new Date(val).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
 }
 
 function fmt(val) {
-  if (!val) return "—";
+  if (!isValidDateValue(val)) return "—";
   return new Date(val).toLocaleString([], {
     month: "short",
     day: "numeric",
@@ -230,7 +253,7 @@ function formatPlannedLine(station) {
 }
 
 function plannedRestMs(station) {
-  if (!station?.in || !station?.out) return null;
+  if (!isValidDateValue(station?.in) || !isValidDateValue(station?.out)) return null;
   const ms = new Date(station.out) - new Date(station.in);
   return ms > 0 ? ms : null;
 }
@@ -241,7 +264,7 @@ function showRestBadge(station) {
 }
 
 function actualStopMs(record) {
-  if (!record?.in || !record?.out) return null;
+  if (!isValidDateValue(record?.in) || !isValidDateValue(record?.out)) return null;
   const ms = new Date(record.out) - new Date(record.in);
   return ms > 0 ? ms : null;
 }
@@ -404,7 +427,9 @@ function getProjectedSchedule(records) {
   let lastActualIndex = -1;
 
   records.forEach((r, i) => {
-    if (r.in || r.out) lastActualIndex = i;
+    if (isValidDateValue(r.in) || isValidDateValue(r.out)) {
+      lastActualIndex = i;
+    }
   });
 
   if (lastActualIndex < 0) {
@@ -417,7 +442,17 @@ function getProjectedSchedule(records) {
 
   const lastStation = stations[lastActualIndex];
   const lastRecord = records[lastActualIndex];
-  const lastActualTime = new Date(lastRecord.out || lastRecord.in);
+  const lastActualValue = isValidDateValue(lastRecord.out) ? lastRecord.out : lastRecord.in;
+  const lastActualTime = new Date(lastActualValue);
+
+  if (Number.isNaN(lastActualTime.getTime())) {
+    return stations.map((s) => ({
+      projectedIn: s.in,
+      projectedOut: s.out,
+      deltaMs: 0,
+    }));
+  }
+
   const remainingStations = stations.slice(lastActualIndex + 1);
 
   const totalRemainingWeightedMiles = remainingStations.reduce((sum, station, idx) => {
@@ -426,17 +461,24 @@ function getProjectedSchedule(records) {
     return sum + segmentMiles * (station.weightFromPrevious || 1);
   }, 0);
 
-  const plannedAnchorTime = new Date(lastRecord.out ? lastStation.out : lastStation.in);
-const plannedRemainingMs = plannedFinish - plannedAnchorTime;
-const actualDeltaMs = lastActualTime - plannedAnchorTime;
-const remainingPlanMs = Math.max(0, plannedRemainingMs - actualDeltaMs);
+  const plannedFinish = new Date(stations[stations.length - 1].in);
+  const plannedAnchorTime = new Date(
+    isValidDateValue(lastRecord.out) ? lastStation.out : lastStation.in
+  );
+  const plannedRemainingMs = plannedFinish - plannedAnchorTime;
+  const actualDeltaMs = lastActualTime - plannedAnchorTime;
+  const remainingPlanMs = Math.max(0, plannedRemainingMs - actualDeltaMs);
+
+  let cursor = new Date(lastActualTime);
 
   return stations.map((s, i) => {
     if (i <= lastActualIndex) {
       return {
-        projectedIn: records[i].in || s.in,
-        projectedOut: records[i].out || s.out,
-        deltaMs: records[i].in ? new Date(records[i].in) - new Date(s.in) : 0,
+        projectedIn: isValidDateValue(records[i]?.in) ? records[i].in : s.in,
+        projectedOut: isValidDateValue(records[i]?.out) ? records[i].out : s.out,
+        deltaMs: isValidDateValue(records[i]?.in)
+          ? new Date(records[i].in) - new Date(s.in)
+          : 0,
       };
     }
 
@@ -476,13 +518,13 @@ export default function App() {
   useEffect(() => {
     if (sharedData) {
       const decoded = decodeShareData(sharedData);
-      if (decoded?.length) setRecords(decoded);
+      if (decoded?.length) setRecords(normalizeSavedRecords(decoded));
       return;
     }
 
     try {
       const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
-      if (saved?.records) setRecords(saved.records);
+      if (saved?.records) setRecords(normalizeSavedRecords(saved.records));
       if (saved?.tab) setTab(saved.tab);
     } catch {}
   }, [sharedData]);
@@ -509,7 +551,7 @@ export default function App() {
 
     let lastActualIndex = -1;
     records.forEach((r, i) => {
-      if (r.in || r.out) lastActualIndex = i;
+      if (isValidDateValue(r.in) || isValidDateValue(r.out)) lastActualIndex = i;
     });
 
     if (lastActualIndex < 0) {
@@ -524,7 +566,21 @@ export default function App() {
     }
 
     const lastStation = stations[lastActualIndex];
-    const lastTime = new Date(records[lastActualIndex].out || records[lastActualIndex].in);
+    const lastRecord = records[lastActualIndex];
+    const lastActualValue = isValidDateValue(lastRecord.out) ? lastRecord.out : lastRecord.in;
+    const lastTime = new Date(lastActualValue);
+
+    if (Number.isNaN(lastTime.getTime())) {
+      return {
+        basedOn: "No valid actuals yet",
+        projectedFinish: "",
+        projectedHours: null,
+        deltaVsPlan: null,
+        projectedNext: "",
+        paceMinPerMile: null,
+      };
+    }
+
     const elapsedMs = lastTime - start;
     const elapsedMinutes = elapsedMs / 60000;
     const paceMinPerMile = elapsedMinutes / lastStation.mile;
@@ -552,13 +608,12 @@ export default function App() {
 
   function updateRecordField(i, field, value) {
     if (readOnly) return;
-    setRecords((prev) => prev.map((r, idx) => (idx === i ? { ...r, [field]: value } : r)));
+    setRecords((prev) => prev.map((r, idx) => (idx === i ? { ...r, [field]: value || "" } : r)));
   }
 
   function stamp(i, field) {
     if (readOnly) return;
-    const now = localDateString(new Date());
-    updateRecordField(i, field, now);
+    updateRecordField(i, field, localDateString(new Date()));
   }
 
   function updateNote(i, note) {
