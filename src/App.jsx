@@ -55,7 +55,16 @@ function localDateString(date) {
 
 function toDateTimeInputValue(val) {
   if (!val) return "";
-  return localDateString(new Date(val)).slice(0, 16);
+
+  // datetime-local already wants YYYY-MM-DDTHH:mm
+  if (typeof val === "string" && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(val)) {
+    return val.slice(0, 16);
+  }
+
+  const date = new Date(val);
+  if (Number.isNaN(date.getTime())) return "";
+
+  return localDateString(date).slice(0, 16);
 }
 
 function generateStations() {
