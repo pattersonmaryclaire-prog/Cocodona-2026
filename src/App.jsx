@@ -425,10 +425,15 @@ function decodeShareData(value) {
 
 function getProjectedSchedule(records) {
   let lastActualIndex = -1;
+  let lastActualField = "in";
 
   records.forEach((r, i) => {
-    if (isValidDateValue(r.in) || isValidDateValue(r.out)) {
+    if (isValidDateValue(r.out)) {
       lastActualIndex = i;
+      lastActualField = "out";
+    } else if (isValidDateValue(r.in)) {
+      lastActualIndex = i;
+      lastActualField = "in";
     }
   });
 
@@ -439,6 +444,53 @@ function getProjectedSchedule(records) {
       deltaMs: 0,
     }));
   }
+
+  const lastStation = stations[lastActualIndex];
+  const lastRecord = records[lastActualIndex];
+
+  const actualAnchorValue =
+    lastActualField === "out" ? lastRecord.out : lastRecord.in;
+
+  const plannedAnchorValue =
+    lastActualField === "out" ? lastStation.out : lastStation.in;
+
+  if (!isValidDateValue(actualAnchorValue) || !isValidDateValue(plannedAnchorValue)) {
+    return stations.map((s) => ({
+      projectedIn: s.in,
+      projectedOut: s.out,
+      deltaMs: 0,
+    }));
+  }
+
+  const deltaMs = new Date(actualAnchorValue) - new Date(plannedAnchorValue);
+
+  return stations.map((s, i) => {
+    if (i <= lastActualIndex) {
+      return {
+        projectedIn: isValidDateValue(records[i]?.in) ? records[i].in : s.in,
+        projectedOut: isValidDateValue(records[i]?.out) ? records[i].out : s.out,
+        deltaMs: isValidDateValue(records[i]?.in)
+          ? new Date(records[i].in) - new Date(s.in)
+          : deltaMs,
+      };
+    }
+
+    const projectedInDate = isValidDateValue(s.in)
+      ? new Date(new Date(s.in).getTime() + deltaMs)
+      : null;
+
+    const projectedOutDate = isValidDateValue(s.out)
+      ? new Date(new Date(s.out).getTime() + deltaMs)
+      : null;
+
+    return {
+      projectedIn: projectedInDate ? localDateString(projectedInDate) : "",
+      projectedOut: projectedOutDate ? localDateString(projectedOutDate) : "",
+      deltaMs,
+    };
+  });
+}
+  
 
   const lastStation = stations[lastActualIndex];
   const lastRecord = records[lastActualIndex];
