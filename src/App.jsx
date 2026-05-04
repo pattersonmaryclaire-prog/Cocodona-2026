@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 
-const STORAGE_KEY = "cocodona-crew-v17-pacer-update";
+const STORAGE_KEY = "cocodona-crew-v18-manual-in-out";
 
 const RACE_START = "2026-05-04T05:00:00";
 const GOAL_FINISH = "2026-05-08T02:00:00";
@@ -12,7 +12,6 @@ const stationPlan = [
   { name: "Arrastra Creek", mile: 51.0, restMinutes: 60, weightFromPrevious: 1.05, pacer: "NO PACER SECTION", shoes: "NO SHOE CHANGE" },
   { name: "Kamp Kipa", mile: 60.8, restMinutes: 60, weightFromPrevious: 1.1, pacer: "NO PACER SECTION", shoes: "NO SHOE CHANGE" },
   { name: "Camp W", mile: 67.4, restMinutes: 10, weightFromPrevious: 0.95, pacer: "NO PACER SECTION", shoes: "NO SHOE CHANGE" },
-
   { name: "Whiskey Row", mile: 75.6, restMinutes: 120, weightFromPrevious: 0.9, pacer: "Lin", shoes: "ROAD SHOES" },
   { name: "Watson Lake", mile: 82.8, restMinutes: 10, weightFromPrevious: 0.9, pacer: "Lin", shoes: "NO SHOE CHANGE" },
   { name: "Fain Ranch", mile: 96.5, restMinutes: 60, weightFromPrevious: 0.95, pacer: "Ben", shoes: "NO SHOE CHANGE" },
@@ -31,23 +30,12 @@ const stationPlan = [
   { name: "Finish", mile: 253.3, restMinutes: 0, weightFromPrevious: 1.0, pacer: "NO PACER SECTION", shoes: "NO SHOE CHANGE" },
 ];
 
-// --- PACER COLOR SYSTEM ---
 function pacerStyle(pacer) {
-  if (!pacer || pacer === "NO PACER SECTION") {
-    return { background: "#e5e7eb", color: "#374151" };
-  }
+  if (!pacer || pacer === "NO PACER SECTION") return { background: "#e5e7eb", color: "#374151" };
   if (pacer.includes("Ben")) return { background: "#dcfce7", color: "#166534" };
   if (pacer.includes("Lin")) return { background: "#dbeafe", color: "#1e3a8a" };
   if (pacer.includes("Joe")) return { background: "#fee2e2", color: "#991b1b" };
   return { background: "#ede9fe", color: "#5b21b6" };
-}
-
-// --- PLANNED REST (PURPLE) ---
-function restStyle() {
-  return {
-    background: "#ede9fe",
-    color: "#5b21b6",
-  };
 }
 
 function roundToFiveMinutes(date) {
@@ -63,6 +51,11 @@ function localDateString(date) {
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(
     date.getHours()
   )}:${pad(date.getMinutes())}:00`;
+}
+
+function toDateTimeInputValue(val) {
+  if (!val) return "";
+  return localDateString(new Date(val)).slice(0, 16);
 }
 
 function generateStations() {
@@ -84,10 +77,7 @@ function generateStations() {
     return { ...station, previousMile, segmentMiles, weightedMiles };
   });
 
-  const totalWeightedMiles = weightedSegments.reduce(
-    (sum, station) => sum + station.weightedMiles,
-    0
-  );
+  const totalWeightedMiles = weightedSegments.reduce((sum, station) => sum + station.weightedMiles, 0);
 
   let cursor = new Date(start);
 
@@ -139,37 +129,16 @@ const crewAccessibleAid = new Set([
 ]);
 
 const hotelBases = {
-  anthem: {
-    label: "Start Base",
-    hotel: "Hampton Inn Anthem",
-    address: "42415 N 41st Dr, Anthem, AZ 85086",
-  },
-  prescott: {
-    label: "Prescott Base",
-    hotel: "Hotel St. Michael",
-    address: "205 W Gurley St, Prescott, AZ",
-  },
-  jerome: {
-    label: "Jerome Base",
-    hotel: "The Grand Hotel",
-    address: "200 Hill St, Jerome, AZ",
-  },
-  sedona: {
-    label: "Sedona Base",
-    hotel: "The Sky Rock Sedona",
-    address: "1200 AZ-89A, Sedona, AZ",
-  },
-  flagstaff: {
-    label: "Flagstaff Base",
-    hotel: "Little America Hotel",
-    address: "2515 E Butler Ave, Flagstaff, AZ",
-  },
+  anthem: { label: "Start Base", hotel: "Hampton Inn Anthem", address: "42415 N 41st Dr, Anthem, AZ 85086" },
+  prescott: { label: "Prescott Base", hotel: "Hotel St. Michael", address: "205 W Gurley St, Prescott, AZ" },
+  jerome: { label: "Jerome Base", hotel: "The Grand Hotel", address: "200 Hill St, Jerome, AZ" },
+  sedona: { label: "Sedona Base", hotel: "The Sky Rock Sedona", address: "1200 AZ-89A, Sedona, AZ" },
+  flagstaff: { label: "Flagstaff Base", hotel: "Little America Hotel", address: "2515 E Butler Ave, Flagstaff, AZ" },
 };
 
 const driveData = {
   "Cottonwood Creek": { base: "anthem", distance: 32, drive: 45 },
   "Lane Mountain": { base: "anthem", distance: 28, drive: 40 },
-
   "Crown King": {
     base: "anthem",
     distance: 54,
@@ -185,22 +154,18 @@ const driveData = {
     instructions:
       "Go to Bumble Bee Ranch first to obtain parking pass. Then continue via fire roads to Crown King. Do not route directly to Crown King without pass stop.",
   },
-
   "Arrastra Creek": { base: "prescott", distance: 28, drive: 60 },
   "Kamp Kipa": { base: "prescott", distance: 18, drive: 40 },
   "Camp W": { base: "prescott", distance: 10, drive: 25 },
   "Whiskey Row": { base: "prescott", distance: 0.2, drive: 5 },
   "Watson Lake": { base: "prescott", distance: 5, drive: 15 },
   "Fain Ranch": { base: "prescott", distance: 16, drive: 30 },
-
   "Mingus Mountain": { base: "jerome", distance: 21, drive: 45 },
   Jerome: { base: "jerome", distance: 0.2, drive: 5 },
-
   "Dead Horse": { base: "sedona", distance: 20, drive: 35 },
   "Deer Pass": { base: "sedona", distance: 26, drive: 45 },
   "Sedona Posse Grounds": { base: "sedona", distance: 2, drive: 8 },
   "Schnebly Hill": { base: "sedona", distance: 7, drive: 20 },
-
   "Munds Park": { base: "flagstaff", distance: 22, drive: 30 },
   "Kelly Canyon": { base: "flagstaff", distance: 14, drive: 25 },
   "Fort Tuthill": { base: "flagstaff", distance: 7, drive: 15 },
@@ -576,15 +541,20 @@ export default function App() {
     };
   }, [records]);
 
+  function updateRecordField(i, field, value) {
+    if (readOnly) return;
+    setRecords((prev) => prev.map((r, idx) => (idx === i ? { ...r, [field]: value } : r)));
+  }
+
   function stamp(i, field) {
     if (readOnly) return;
-    const now = new Date().toISOString();
-    setRecords((prev) => prev.map((r, idx) => (idx === i ? { ...r, [field]: now } : r)));
+    const now = localDateString(new Date());
+    updateRecordField(i, field, now);
   }
 
   function updateNote(i, note) {
     if (readOnly) return;
-    setRecords((prev) => prev.map((r, idx) => (idx === i ? { ...r, note } : r)));
+    updateRecordField(i, "note", note);
   }
 
   function toggleNote(i) {
@@ -646,12 +616,14 @@ export default function App() {
     },
     input: {
       width: "100%",
+      minWidth: 0,
       height: 42,
       borderRadius: 14,
       border: "1px solid #e5d3b3",
       padding: "0 10px",
       boxSizing: "border-box",
       background: "#fffdf9",
+      fontSize: 12,
     },
     small: {
       fontSize: 13,
@@ -682,7 +654,46 @@ export default function App() {
       fontSize: 12,
       textAlign: "center",
     },
+    fieldBox: {
+      background: "#fffdf9",
+      border: "1px solid #e5d3b3",
+      borderRadius: 14,
+      padding: 10,
+      boxSizing: "border-box",
+    },
+    label: {
+      display: "block",
+      fontSize: 12,
+      fontWeight: 800,
+      marginBottom: 6,
+      color: "#8F7D63",
+    },
   };
+
+  const ManualInOutFields = ({ index }) => (
+    <div style={{ ...styles.grid2, marginTop: 12 }}>
+      <div style={styles.fieldBox}>
+        <label style={styles.label}>Manual Actual In</label>
+        <input
+          disabled={readOnly}
+          type="datetime-local"
+          style={styles.input}
+          value={toDateTimeInputValue(records[index]?.in)}
+          onChange={(e) => updateRecordField(index, "in", e.target.value)}
+        />
+      </div>
+      <div style={styles.fieldBox}>
+        <label style={styles.label}>Manual Actual Out</label>
+        <input
+          disabled={readOnly}
+          type="datetime-local"
+          style={styles.input}
+          value={toDateTimeInputValue(records[index]?.out)}
+          onChange={(e) => updateRecordField(index, "out", e.target.value)}
+        />
+      </div>
+    </div>
+  );
 
   return (
     <div style={styles.page}>
@@ -706,9 +717,7 @@ export default function App() {
           </div>
 
           <div style={styles.badgeRow}>
-            <div style={{ ...accessStyle(current.name), marginTop: 0 }}>
-              {accessLabel(current.name)}
-            </div>
+            <div style={{ ...accessStyle(current.name), marginTop: 0 }}>{accessLabel(current.name)}</div>
 
             {showRestBadge(current) && (
               <div style={{ ...restBadgeStyle(currentRest), marginTop: 0 }}>
@@ -740,21 +749,15 @@ export default function App() {
           </div>
 
           <div style={{ ...styles.grid2, marginTop: 12 }}>
-            <button
-              disabled={readOnly}
-              style={{ ...styles.button, background: "#ef476f", color: "#fff" }}
-              onClick={() => stamp(currentIndex, "in")}
-            >
+            <button disabled={readOnly} style={{ ...styles.button, background: "#ef476f", color: "#fff" }} onClick={() => stamp(currentIndex, "in")}>
               TAP IN
             </button>
-            <button
-              disabled={readOnly}
-              style={{ ...styles.button, background: "#ffd60a", color: "#3B2432" }}
-              onClick={() => stamp(currentIndex, "out")}
-            >
+            <button disabled={readOnly} style={{ ...styles.button, background: "#ffd60a", color: "#3B2432" }} onClick={() => stamp(currentIndex, "out")}>
               TAP OUT
             </button>
           </div>
+
+          <ManualInOutFields index={currentIndex} />
 
           <div style={{ ...styles.grid2, marginTop: 12, fontSize: 13 }}>
             <div>
@@ -817,15 +820,11 @@ export default function App() {
               <br />
               Depart Pass Stop: {crew.passStopDepart ? time(crew.passStopDepart) : "—"}
               <br />
-              <span style={{ color: "#991b1b", fontWeight: 800 }}>
-                {crew.instructions}
-              </span>
+              <span style={{ color: "#991b1b", fontWeight: 800 }}>{crew.instructions}</span>
             </div>
           )}
 
-          {crewAccessibleAid.has(current.name) && (
-            <div style={statusStyle(crew.status)}>{crew.status}</div>
-          )}
+          {crewAccessibleAid.has(current.name) && <div style={statusStyle(crew.status)}>{crew.status}</div>}
 
           {crewAccessibleAid.has(current.name) && (
             <a
@@ -898,9 +897,7 @@ export default function App() {
                   </div>
 
                   <div style={styles.badgeRow}>
-                    <div style={{ ...accessStyle(s.name), marginTop: 0 }}>
-                      {accessLabel(s.name)}
-                    </div>
+                    <div style={{ ...accessStyle(s.name), marginTop: 0 }}>{accessLabel(s.name)}</div>
 
                     {showRestBadge(s) && (
                       <div style={{ ...restBadgeStyle(r), marginTop: 0 }}>
@@ -930,6 +927,8 @@ export default function App() {
                     <br />
                     Δ vs Plan: {duration(projected?.deltaMs)}
                   </div>
+
+                  <ManualInOutFields index={i} />
 
                   <div style={{ fontSize: 13, marginTop: 8 }}>
                     {crewAccessibleAid.has(s.name) && (
@@ -971,8 +970,7 @@ export default function App() {
 
                     {nextStation && (
                       <>
-                        To next: {nextStation.name} · {stationDrive.drive} min /{" "}
-                        {stationDrive.miles} mi
+                        To next: {nextStation.name} · {stationDrive.drive} min / {stationDrive.miles} mi
                       </>
                     )}
                   </div>
