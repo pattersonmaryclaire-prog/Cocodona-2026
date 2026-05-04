@@ -535,7 +535,7 @@ function getProjectedSchedule(records) {
       deltaMs,
     };
   });
-  
+}
 
   const lastStation = stations[lastActualIndex];
   const lastRecord = records[lastActualIndex];
